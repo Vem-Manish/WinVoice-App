@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta name="google-site-verification" content="2UF6gNgbHhUxbjsjLYRb7ujoIoEeo89tESq2VsD4y70" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WinVoice — The Ultimate Local AI</title>
+  <link rel="icon" href="assets/logo.png?v=2" type="image/png">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <style>
+    :root {
+      --bg: #020202;
+      --accent: #ff5500;
+      --text: #f4f4f5;
+      --gray: #a1a1aa;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg);
+      background-image: 
+        linear-gradient(rgba(255, 85, 0, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 85, 0, 0.04) 1px, transparent 1px);
+      background-size: 60px 60px;
+      background-position: center center;
+      color: var(--text);
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    ::selection {
+      background: var(--accent);
+      color: #000;
+    }
+    
+    /* CUSTOM CURSOR */
+    body, a, button, .nav-logo, .orbit-item {
+      cursor: none !important;
+    }
+    .custom-cursor {
+      position: fixed; top: 0; left: 0; width: 12px; height: 12px;
+      background-color: var(--accent); border-radius: 50%;
+      pointer-events: none; z-index: 10005;
+      transform: translate(-50%, -50%);
+      box-shadow: 0 0 15px var(--accent);
+      transition: width 0.2s, height 0.2s, background-color 0.2s;
+    }
+    .custom-cursor.hover {
+      width: 40px; height: 40px;
+      background-color: rgba(255,85,0,0.1);
+      border: 2px solid var(--accent);
+    }
+    html, body {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    ::-webkit-scrollbar {
+      display: none;
+    }
+
+    /* NOISE OVERLAY */
+    .noise {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      pointer-events: none;
+      background-image: url('data:image/svg+xml;utf8,%3Csvg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"%3E%3Cfilter id="noiseFilter"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" stitchTiles="stitch"/%3E%3C/filter%3E%3Crect width="100%25" height="100%25" filter="url(%23noiseFilter)"/%3E%3C/svg%3E');
+      opacity: 0.06;
+      z-index: 9999;
+    }
+
+    /* NAVBAR */
+    .nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 24px 48px;
+      background: linear-gradient(to bottom, rgba(2,2,2,0.9), transparent);
+    }
+    .nav-logo {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.5rem; font-weight: 700; color: #fff;
+      display: flex; align-items: center; gap: 12px; text-decoration: none;
+      letter-spacing: -0.5px;
+    }
+    .nav-logo img { width: 32px; height: 32px; border-radius: 8px; }
+    .nav-links { display: flex; gap: 32px; align-items: center; }
+    .nav-links a {
+      color: var(--gray); text-decoration: none; font-size: 0.9rem; font-weight: 500;
+      transition: color 0.3s;
+    }
+    .nav-links a:hover { color: #fff; }
+    .nav-cta {
+      background: var(--accent) !important; color: #fff !important;
+      padding: 10px 24px; border-radius: 100px; font-weight: 600;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .nav-cta:hover { transform: scale(1.05); box-shadow: 0 0 20px rgba(255,85,0,0.4); }
+
+    /* MASTER SEQUENCE CONTAINER */
+    .sequence-container {
+      position: relative; width: 100vw; height: 100vh;
+      overflow: hidden;
+    }
+
+    /* HERO */
+    .hero {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      text-align: center; z-index: 10; pointer-events: none;
+    }
+    .hero-content {
+      display: flex; flex-direction: column; align-items: center; z-index: 2; pointer-events: auto;
+    }
+    .hero h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(3.5rem, 6vw, 5.5rem); font-weight: 800; line-height: 1.1;
+      letter-spacing: -2px; margin-bottom: 24px;
+      color: #ffffff;
+    }
+    .hero .accent { 
+      color: #ff7700;
+      text-shadow: 0 0 20px rgba(255,85,0,0.6);
+      font-weight: 800;
+    }
+    .hero p {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(1.4rem, 2.5vw, 1.8rem); color: #d4c5b9; max-width: 800px;
+      line-height: 1.6; font-weight: 500; letter-spacing: -0.5px;
+    }
+    .char { display: inline-block; position: relative; }
+    .hero-glow {
+      position: absolute; top: 50%; left: 50%; width: 70vw; height: 70vw;
+      transform: translate(-50%, -50%);
+      background: radial-gradient(circle, rgba(255,85,0,0.2) 0%, rgba(200,40,0,0.1) 40%, transparent 70%);
+      filter: blur(90px); pointer-events: none; z-index: -1;
+    }
+
+    /* GLOBE SECTION */
+    .globe-section {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      background: transparent; z-index: 5;
+    }
+
+    /* TEXT CONTAINER (LEFT) */
+    .feature-text-container {
+      position: absolute; top: 0; left: 8vw; width: 38vw; height: 100%;
+      z-index: 200; opacity: 0;
+      transform-origin: 67vw 50%;
+    }
+    .feature-text {
+      position: absolute; top: 50%; left: 0; width: 100%;
+      transform-origin: 67vw 50%;
+      opacity: 0; pointer-events: none;
+    }
+    .feature-text.active {
+      visibility: visible; pointer-events: auto;
+    }
+    .feat-num {
+      font-family: 'Space Grotesk', sans-serif; font-size: 1.1rem; color: var(--accent);
+      font-weight: 700; margin-bottom: 20px; letter-spacing: 3px;
+    }
+    .feature-text h2 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(3rem, 4vw, 5rem); font-weight: 800; color: #fff; margin-bottom: 24px;
+      letter-spacing: -2px; line-height: 1.1;
+    }
+    .feature-text p {
+      font-size: 1.15rem; color: var(--gray); line-height: 1.7;
+    }
+    .example-prompt {
+      font-family: 'Inter', sans-serif;
+      font-size: 1.1rem; color: #fff; font-style: italic;
+      margin-top: 24px; padding-left: 16px; border-left: 2px solid var(--accent);
+      line-height: 1.5; font-weight: 500;
+    }
+    .execution-flow {
+      margin-top: 20px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    }
+    .flow-step {
+      font-family: 'Space Grotesk', sans-serif; font-size: 0.85rem; font-weight: 600;
+      color: var(--accent); background: rgba(255, 85, 0, 0.1);
+      padding: 6px 12px; border-radius: 6px; letter-spacing: 1px; text-transform: uppercase;
+      border: 1px solid rgba(255,85,0,0.2);
+    }
+    .flow-arrow {
+      color: var(--gray); font-size: 0.9rem;
+    }
+
+    /* TARGETING RETICLE (CENTER-LEFT) */
+    .target-reticle-positioner {
+      position: absolute; top: 50%; left: 55vw; 
+      transform: translate(-50%, -50%);
+      width: 140px; height: 140px; z-index: 100;
+      opacity: 0; /* Handled by GSAP */
+    }
+    .target-reticle-spinner {
+      width: 100%; height: 100%; position: relative;
+    }
+    .target-reticle {
+      width: 100%; height: 100%;
+      border: 2px dashed rgba(255, 85, 0, 0.4);
+      border-radius: 50%;
+    }
+    .target-line-top { position: absolute; top: -15px; left: 50%; width: 2px; height: 15px; background: var(--accent); transform: translateX(-50%); }
+    .target-line-bottom { position: absolute; bottom: -15px; left: 50%; width: 2px; height: 15px; background: var(--accent); transform: translateX(-50%); }
+    .target-line-right { position: absolute; right: -15px; top: 50%; height: 2px; width: 15px; background: var(--accent); transform: translateY(-50%); }
+    .target-line-left { position: absolute; left: -15px; top: 50%; height: 2px; width: 15px; background: var(--accent); transform: translateY(-50%); }
+
+    /* 3D GLOBE CONTAINER (RIGHT) */
+    .globe-positioner {
+      position: absolute; top: 50%; left: 50vw; /* Starts centered */
+      width: 40vw; height: 40vw;
+      transform: translate(-50%, -50%);
+      z-index: 50;
+    }
+    .globe-wrapper {
+      width: 100%; height: 100%;
+      transform: scale(0.01); /* Starts tiny and invisible */
+      opacity: 0; 
+      perspective: 1000px;
+    }
+
+    /* GLOBE CENTER HERO LOGO */
+    .globe-hero {
+      position: absolute; top: 50%; left: 50%;
+      width: 140px; height: 140px;
+      transform: translate(-50%, -50%);
+      background: #000; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 0 50px rgba(255, 85, 0, 0.6), inset 0 0 20px rgba(255, 85, 0, 0.3);
+      z-index: 20;
+    }
+    .globe-hero img {
+      width: 80px; height: 80px; border-radius: 16px;
+    }
+    .hero-glow-inner {
+      position: absolute; top: 50%; left: 50%;
+      width: 250px; height: 250px;
+      transform: translate(-50%, -50%);
+      background: radial-gradient(circle, rgba(255,85,0,0.3) 0%, transparent 60%);
+      border-radius: 50%; pointer-events: none; z-index: -1;
+    }
+
+    /* 3D WIREFRAME RINGS */
+    .globe-rings {
+      position: absolute; top: 5%; left: 5%; width: 90%; height: 90%;
+      transform-style: preserve-3d;
+      animation: spinGlobe 25s linear infinite;
+      z-index: 5;
+      pointer-events: none;
+    }
+    @keyframes spinGlobe {
+      from { transform: rotateX(15deg) rotateY(0deg); }
+      to { transform: rotateX(15deg) rotateY(360deg); }
+    }
+    .globe-ring {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      border: 1px solid rgba(255, 85, 0, 0.2);
+      border-radius: 50%;
+    }
+    .r1 { transform: rotateY(0deg); }
+    .r2 { transform: rotateY(45deg); }
+    .r3 { transform: rotateY(90deg); }
+    .r4 { transform: rotateY(135deg); }
+    .r-eq { transform: rotateX(90deg); border: 2px dashed rgba(255, 85, 0, 0.5); }
+
+    /* ORBITING ITEMS RING */
+    .orbit-ring {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      border-radius: 50%; border: 1px dashed rgba(255, 85, 0, 0.15);
+      z-index: 25;
+      opacity: 0; /* Handled by GSAP */
+    }
+    .orbit-item {
+      position: absolute; top: 50%; left: 50%;
+      width: 80px; height: 80px; margin: -40px 0 0 -40px;
+    }
+    .orbit-item-inner {
+      width: 100%; height: 100%;
+      background: #080808; border: 1px solid rgba(255, 85, 0, 0.3);
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-size: 2rem; color: rgba(255,255,255,0.4);
+      transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+    .orbit-item.active .orbit-item-inner {
+      background: rgba(255, 85, 0, 0.2); border-color: var(--accent);
+      color: #fff; transform: scale(1.4);
+      box-shadow: 0 0 40px rgba(255, 85, 0, 0.6), inset 0 0 20px rgba(255, 85, 0, 0.3);
+    }
+
+    /* CTA SECTION */
+    .cta {
+      height: 100vh; width: 100vw;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      background: #000; text-align: center; border-top: 1px solid rgba(255,85,0,0.1);
+      position: relative; overflow: hidden;
+    }
+    .cta h2 { 
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(4rem, 7vw, 6.5rem); font-weight: 800; margin-bottom: 40px; letter-spacing: -3px; line-height: 1;
+    }
+    .cta-btn {
+      display: inline-block; padding: 20px 48px; background: var(--accent); color: #000;
+      font-size: 1.15rem; font-weight: 700; border-radius: 100px; text-decoration: none;
+      box-shadow: 0 10px 40px rgba(255, 85, 0, 0.4); transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .cta-btn:hover { transform: translateY(-4px); box-shadow: 0 20px 60px rgba(255, 85, 0, 0.6); }
+
+    /* FOOTER */
+    footer {
+      padding: 40px 48px; border-top: 1px solid rgba(255,255,255,0.06);
+      display: flex; align-items: center; justify-content: space-between; background: #000;
+    }
+    .footer-left { display: flex; align-items: center; gap: 12px; color: #52525b; font-weight: 600; font-size: 0.9rem; }
+    .footer-left img { width: 22px; height: 22px; border-radius: 6px; opacity: 0.5; }
+    .footer-right { display: flex; gap: 28px; }
+    .footer-right a { color: #52525b; font-size: 0.9rem; font-weight: 500; transition: color 0.2s; }
+    .footer-right a:hover { color: #f4f4f5; }
+
+    @media(max-width:900px){
+      .globe-positioner { width: 70vw; height: 70vw; left: 85vw !important; }
+      .feature-text-container { width: 60vw; left: 5vw; }
+      .target-reticle-positioner { left: 85vw !important; }
+    }
+    @media(max-width:600px){
+      .nav { padding: 16px 20px; }
+      .globe-positioner { width: 120vw; height: 120vw; left: 150vw !important; }
+      .feature-text-container { width: 80vw; left: 5vw; }
+      .target-reticle-positioner { display: none; }
+      footer { flex-direction: column; gap: 20px; }
+    }
+    
+    /* COMING SOON MODAL */
+    .coming-soon-overlay {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(0,0,0,0.8); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      z-index: 10000; opacity: 0; pointer-events: none;
+      transition: opacity 0.4s ease;
+    }
+    .coming-soon-modal {
+      position: fixed; top: 50%; left: 50%; transform: translate(-50%, -40%);
+      width: 90%; max-width: 500px; background: #050505;
+      border: 1px solid rgba(255,85,0,0.2); border-radius: 24px;
+      padding: 48px; text-align: center; z-index: 10001;
+      opacity: 0; pointer-events: none;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.8), inset 0 0 40px rgba(255,85,0,0.05);
+      transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    .coming-soon-modal.active, .coming-soon-overlay.active {
+      opacity: 1; pointer-events: auto;
+    }
+    .coming-soon-modal.active { transform: translate(-50%, -50%); }
+    
+
+    .coming-soon-modal h3 {
+      font-family: 'Syne', sans-serif; font-size: 2.8rem; font-weight: 800;
+      color: #ffffff; margin-bottom: 24px; letter-spacing: -1.5px; line-height: 1.1;
+    }
+    .coming-soon-modal p {
+      font-family: 'Space Grotesk', sans-serif; font-size: 1.25rem; color: #d4c5b9;
+      line-height: 1.6; margin-bottom: 32px; font-weight: 500; letter-spacing: -0.5px;
+    }
+    .coming-soon-modal a {
+      display: inline-block; padding: 14px 32px; background: var(--accent); color: #000;
+      font-size: 1rem; font-weight: 700; border-radius: 100px; text-decoration: none;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .coming-soon-modal a:hover {
+      transform: translateY(-2px); box-shadow: 0 10px 20px rgba(255,85,0,0.4);
+    }
+    .cs-close {
+      position: absolute; top: 20px; right: 20px; background: transparent;
+      border: none; color: #52525b; font-size: 24px; cursor: none;
+      transition: color 0.2s;
+    }
+    .cs-close:hover { color: #fff; }
+
+  
+    /* LINKEDIN CTA */
+    .linkedin-cta {
+      padding: 100px 20px 80px;
+      text-align: center;
+      border-top: 1px solid rgba(255,255,255,0.05);
+      background: radial-gradient(circle at top, rgba(255,85,0,0.03) 0%, transparent 60%), #000;
+      position: relative;
+    }
+    .linkedin-content {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    .linkedin-content h2 {
+      font-family: 'Syne', sans-serif; font-size: 2.8rem; font-weight: 800; letter-spacing: -1.5px; margin-bottom: 16px; color: #fff; line-height: 1.1;
+    }
+    .linkedin-content p {
+      font-family: 'Space Grotesk', sans-serif; color: #a1a1aa; font-size: 1.15rem; line-height: 1.6; margin-bottom: 36px;
+    }
+    .linkedin-btn {
+      display: inline-flex; align-items: center; gap: 12px;
+      padding: 16px 40px; background: rgba(255,255,255,0.03); color: #fff;
+      border: 1px solid rgba(255,255,255,0.1); border-radius: 100px;
+      font-size: 1.1rem; font-weight: 600; text-decoration: none;
+      transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+    .linkedin-btn svg { width: 20px; height: 20px; fill: currentColor; }
+    .linkedin-btn:hover {
+      background: #0077b5;
+      border-color: #0077b5;
+      transform: translateY(-4px);
+      box-shadow: 0 15px 40px rgba(0, 119, 181, 0.4);
+    }
+
+  </style>
+</head>
+<body>
+  
+  <div class="noise"></div>
+
+  <nav class="nav">
+    <a href="/" class="nav-logo"><img src="assets/logo.png" alt="WinVoice">WinVoice</a>
+    <div class="nav-links">
+      <a href="architecture.html">Architecture</a>
+      <a href="/about">About</a>
+      <a href="/privacy-policy">Privacy</a>
+      <a href="/terms">Terms</a>
+      <a href="#" onclick="openComingSoon(); return false;" class="nav-cta" style="cursor: pointer;">Join the Waitlist</a>
+    </div>
+  </nav>
+
+  <main class="sequence-container">
+    <section class="hero">
+      <div class="hero-glow"></div>
+      <div class="hero-content">
+        <h1>Control your PC.<br>With just your <span class="accent">Voice.</span></h1>
+        <p><span class="accent">WinVoice</span> is a deeply integrated, autonomous local AI. No typing. No clicking. Just speak naturally to automate complex workflows, manage your apps, and control your system entirely hands-free.</p>
+      </div>
+      
+    </section>
+
+    <section class="globe-section">
+      
+      <div class="feature-text-container">
+        <div class="feature-text">
+          <div class="feat-num">01 / 06</div>
+          <h2>Google Workspace<span class="accent">.</span></h2>
+          <p>Seamlessly control Gmail, Calendar, Docs, and Sheets. Fully automated, completely hands-free document management.</p>
+          <div class="example-prompt">"Go through the Q3 Quarterly Report document, summarize the key findings, and email it to Adam."</div>
+          <div class="execution-flow">
+            <span class="flow-step">Find Doc</span><span class="flow-arrow">➔</span>
+            <span class="flow-step">Summarize</span><span class="flow-arrow">➔</span>
+            <span class="flow-step">Draft</span><span class="flow-arrow">➔</span>
+            <span class="flow-step">Send Email</span>
+          </div>
+        </div>
+
+        <div class="feature-text">
+          <div class="feat-num">02 / 06</div>
+          <h2>Spotify Control<span class="accent">.</span></h2>
+          <p>Complete playback control over your music. Request artists, adjust the volume, and control queues without ever clicking.</p>
+          <div class="example-prompt">"Play the Interstellar soundtrack by Hans Zimmer and set the volume to 40 percent."</div>
+          <div class="execution-flow">
+            <span class="flow-step">Launch Spotify</span><span class="flow-arrow">➔</span>
+            <span class="flow-step">Search Artist</span><span class="flow-arrow">➔</span>
+            <span class="flow-step">Set Vol</span><span class="flow-arrow">➔</span>
+            <span class="flow-step">Play</span>
+          </div>
+        </div>
+
+        <div class="feature-text">
+          <div class="feat-num">03 / 06</div>
+          <h2>WhatsApp<span class="accent">.</span></h2>
+          <p>Automated messaging with precision. WinVoice perfectly automates typing and sending messages to your contacts.</p>
+          <div class="example-prompt">"Send a WhatsApp message to Sarah saying I'll be 10 minutes late to the meeting."</div>
+          <div class="execution-flow">
+            <span class="flow-step">Open App</span><span class="flow-arrow">➔</span>
+            <span class="flow-step">Find 'Sarah'</span><span class="flow-arrow">➔</span>
+            <span class="flow-step">Type Message</span><span class="flow-arrow">➔</span>
+            <span class="flow-step">Send</span>
+          </div>
+        </div>
+
+        <div class="feature-text">
+          <div class="feat-num">04 / 06</div>
+          <h2>System & Apps<span class="accent">.</span></h2>
+          <p>Take complete control of Windows. Quickly launch applications and manage system settings using only your voice.</p>
+          <div class="example-prompt">"Increase screen brightness to max, turn on Bluetooth, and open Photoshop."</div>
+          <div class="execution-flow">
+            <span class="flow-step">Set Brightness</span><span class="flow-arrow">➔</span>
+            <span class="flow-step">Toggle Bluetooth</span><span class="flow-arrow">➔</span>
+            <span class="flow-step">Launch App</span>
+          </div>
+        </div>
+
+        <div class="feature-text">
+          <div class="feat-num">05 / 06</div>
+          <h2>Shortcuts & Macros<span class="accent">.</span></h2>
+          <p>Automate repetitive tasks across any application. Trigger massive multi-step macros and custom shortcuts effortlessly.</p>
+          <div class="example-prompt">"Run my morning setup macro: open my dev environment, launch Slack, and tile them."</div>
+          <div class="execution-flow">
+            <span class="flow-step">Launch IDE</span><span class="flow-arrow">➔</span>
+            <span class="flow-step">Launch Slack</span><span class="flow-arrow">➔</span>
+            <span class="flow-step">Window Management</span>
+          </div>
+        </div>
+
+        <div class="feature-text">
+          <div class="feat-num">06 / 06</div>
+          <h2>Local AI & Memory<span class="accent">.</span></h2>
+          <p>Powered locally by a custom-tuned, ultra-fast proprietary LLM. Stores conversational facts in ChromaDB and instantly recalls them with semantic search.</p>
+          <div class="example-prompt">"What was that AWS API key David told me about during last Tuesday's meeting?"</div>
+          <div class="execution-flow">
+            <span class="flow-step">Query DB</span><span class="flow-arrow">➔</span>
+            <span class="flow-step">Retrieve Context</span><span class="flow-arrow">➔</span>
+            <span class="flow-step">Synthesize</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="target-reticle-positioner">
+        <div class="target-reticle-spinner">
+          <div class="target-reticle"></div>
+          <div class="target-line-top"></div>
+          <div class="target-line-bottom"></div>
+          <div class="target-line-left"></div>
+          <div class="target-line-right"></div>
+        </div>
+      </div>
+
+      <div class="globe-positioner">
+        <div class="globe-wrapper">
+          
+          <!-- Center Hero Element -->
+          <div class="globe-hero">
+            <img src="assets/logo.png" alt="WinVoice">
+            <div class="hero-glow-inner"></div>
+          </div>
+          
+          <!-- 3D Spinning Wireframe -->
+          <div class="globe-rings">
+            <div class="globe-ring r1"></div>
+            <div class="globe-ring r2"></div>
+            <div class="globe-ring r3"></div>
+            <div class="globe-ring r4"></div>
+            <div class="globe-ring r-eq"></div>
+          </div>
+
+          <!-- Orbiting Feature Ring -->
+          <div class="orbit-ring">
+            <div class="orbit-item"><div class="orbit-item-inner">📧</div></div>
+            <div class="orbit-item"><div class="orbit-item-inner">🎵</div></div>
+            <div class="orbit-item"><div class="orbit-item-inner">💬</div></div>
+            <div class="orbit-item"><div class="orbit-item-inner">💻</div></div>
+            <div class="orbit-item"><div class="orbit-item-inner">⚡</div></div>
+            <div class="orbit-item"><div class="orbit-item-inner">🧠</div></div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <section class="cta" id="download">
+    <div class="hero-glow" style="top: 0; filter: blur(120px); opacity: 0.5;"></div>
+    <h2>The ultimate shortcut.</h2>
+    <p style="color: var(--gray); font-family: 'Space Grotesk', sans-serif; font-size: 1.25rem; line-height: 1.6; margin-bottom: 40px; max-width: 700px;">
+      WinVoice is a locally-hosted AI assistant that seamlessly integrates with your Google Workspace. By connecting to your Gmail, Calendar, Docs, Sheets, and Drive, it allows you to automate tasks, draft emails, and manage your schedule using natural voice commands—all while processing your data privately on your own machine.
+    </p>
+    <a href="#" onclick="openComingSoon(); return false;" class="cta-btn" style="cursor: pointer;">Join the Waitlist</a>
+  </section>
+
+  
+  <section class="linkedin-cta">
+    <div class="linkedin-content">
+      <h2>Stay in the loop.</h2>
+      <p>WinVoice is evolving rapidly. Follow our journey on LinkedIn for development updates, early access drops, and to connect directly with our team.</p>
+      <a href="https://www.linkedin.com/company/winvoice-app/" target="_blank" class="linkedin-btn">
+        <svg viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+        Follow on LinkedIn
+      </a>
+    </div>
+  </section>
+
+  <footer>
+    <div class="footer-left"><img src="assets/logo.png" alt="Logo">WinVoice &copy; 2026</div>
+    <div class="footer-right">
+      <a href="/about">About</a>
+      <a href="/privacy-policy">Privacy Policy</a>
+      <a href="/terms">Terms of Service</a>
+      <a href="mailto:support.winvoice@gmail.com">Contact</a>
+      <a href="https://www.linkedin.com/company/winvoice-app/" target="_blank">LinkedIn</a>
+    </div>
+  </footer>
+
+  
+  <!-- COMING SOON MODAL -->
+  <div class="coming-soon-overlay" id="cs-overlay" onclick="closeComingSoon()"></div>
+  <div class="coming-soon-modal" id="cs-modal">
+    <button class="cs-close" onclick="closeComingSoon()">&times;</button>
+    
+    <h3>Join the <span style="color: var(--accent);">Waitlist.</span></h3>
+    <p><span style="color: #fff; font-weight: 700;">WinVoice</span> is currently in <span style="color: var(--accent);">closed beta</span>. We are opening up early access slots every week.</p>
+    <p style="font-size: 0.9rem; margin-bottom: 24px;">Message us on LinkedIn to secure your spot on the waitlist!</p>
+    <a href="https://www.linkedin.com/company/winvoice-app/" target="_blank">Join via LinkedIn</a>
+  </div>
+
+  <script>
+    gsap.registerPlugin(ScrollTrigger);
+
+    // --- CUSTOM CURSOR & MOUSE LOGIC ---
+    const cursor = document.createElement('div');
+    cursor.classList.add('custom-cursor');
+    document.body.appendChild(cursor);
+
+    // KINETIC TEXT SPLITTER
+    function splitTextToSpans(element) {
+      const nodes = Array.from(element.childNodes);
+      let html = '';
+      nodes.forEach(node => {
+        if (node.nodeType === 3) {
+          const words = node.textContent.split(' ');
+          words.forEach((word, index) => {
+            if (word.length > 0) {
+              html += `<span style="display: inline-block; white-space: nowrap;">`;
+              const chars = word.split('');
+              chars.forEach(char => {
+                html += `<span class="char">${char}</span>`;
+              });
+              html += `</span>`;
+            }
+            if (index < words.length - 1) {
+              html += ` `;
+            }
+          });
+        } else if (node.nodeType === 1) {
+          if (node.tagName.toLowerCase() === 'br') {
+            html += '<br>';
+          } else {
+            const clone = node.cloneNode(true);
+            const inner = splitTextToSpans(clone);
+            const temp = document.createElement('div');
+            temp.appendChild(clone);
+            clone.innerHTML = inner;
+            html += temp.innerHTML;
+          }
+        }
+      });
+      return html;
+    }
+    
+    const heroH1 = document.querySelector('.hero h1');
+    const heroP = document.querySelector('.hero p');
+    heroH1.innerHTML = splitTextToSpans(heroH1);
+    heroP.innerHTML = splitTextToSpans(heroP);
+    
+    const allChars = document.querySelectorAll('.hero-content .char');
+
+    let mouseX = window.innerWidth / 2;
+    let mouseY = window.innerHeight / 2;
+
+    document.addEventListener('mousemove', e => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+      gsap.to(cursor, { x: mouseX, y: mouseY, duration: 0.1, ease: "power2.out" });
+
+      // Kinetic Letter Scatter Effect
+      allChars.forEach(char => {
+        const rect = char.getBoundingClientRect();
+        const charX = rect.left + rect.width / 2;
+        const charY = rect.top + rect.height / 2;
+        const dist = Math.hypot(mouseX - charX, mouseY - charY);
+        
+        if (dist < 100) {
+          const angle = Math.atan2(charY - mouseY, charX - mouseX);
+          const force = (100 - dist) / 100;
+          const moveX = Math.cos(angle) * force * 40; 
+          const moveY = Math.sin(angle) * force * 40;
+          const rot = (Math.random() - 0.5) * force * 60; 
+          
+          gsap.to(char, { x: moveX, y: moveY, rotation: rot, opacity: 1 - (force*0.5), duration: 0.3, ease: 'power2.out', overwrite: "auto" });
+        } else {
+          gsap.to(char, { x: 0, y: 0, rotation: 0, opacity: 1, duration: 0.8, ease: 'elastic.out(1, 0.3)', overwrite: "auto" });
+        }
+      });
+    });
+
+    document.querySelectorAll('a, button, .orbit-item, .nav-logo, .cta-btn').forEach(el => {
+      el.addEventListener('mouseenter', () => cursor.classList.add('hover'));
+      el.addEventListener('mouseleave', () => cursor.classList.remove('hover'));
+    });
+
+    // --- HERO PARTICLES ---
+    const canvas = document.createElement('canvas');
+    Object.assign(canvas.style, {
+      position: 'absolute', top: '0', left: '0', width: '100%', height: '100%', 
+      zIndex: '1', pointerEvents: 'none'
+    });
+    document.querySelector('.hero').appendChild(canvas);
+    const ctx = canvas.getContext('2d');
+    
+    let pWidth, pHeight;
+    let particles = [];
+    
+    function initParticles() {
+      pWidth = canvas.width = window.innerWidth;
+      pHeight = canvas.height = window.innerHeight;
+      particles = [];
+      for(let i=0; i<60; i++) {
+        particles.push({
+          x: Math.random() * pWidth,
+          y: Math.random() * pHeight,
+          r: Math.random() * 2 + 1,
+          dx: (Math.random() - 0.5) * 0.4,
+          dy: (Math.random() - 0.5) * 0.4,
+          alpha: Math.random() * 0.6 + 0.2
+        });
+      }
+    }
+    
+    function drawParticles() {
+      ctx.clearRect(0, 0, pWidth, pHeight);
+      particles.forEach(p => {
+        p.x += p.dx;
+        p.y += p.dy;
+        
+        // Wrap around
+        if(p.x < 0) p.x = pWidth;
+        if(p.x > pWidth) p.x = 0;
+        if(p.y < 0) p.y = pHeight;
+        if(p.y > pHeight) p.y = 0;
+
+        // Repel from mouse
+        let dist = Math.hypot(mouseX - p.x, mouseY - p.y);
+        if (dist < 150) {
+          let angle = Math.atan2(p.y - mouseY, p.x - mouseX);
+          let force = (150 - dist) / 150; // 0 to 1
+          p.x += Math.cos(angle) * force * 5;
+          p.y += Math.sin(angle) * force * 5;
+        }
+        
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255, 85, 0, ${p.alpha})`;
+        ctx.shadowBlur = 8;
+        ctx.shadowColor = '#ff5500';
+        ctx.fill();
+      });
+      requestAnimationFrame(drawParticles);
+    }
+    
+    initParticles();
+    drawParticles();
+    window.addEventListener('resize', initParticles);
+
+    // Initial page load animations
+    gsap.from('.nav', { y: -30, opacity: 0, duration: 1, ease: 'power3.out' });
+    gsap.from('.hero h1', { y: 40, opacity: 0, duration: 1, delay: 0.2, ease: 'power3.out' });
+    gsap.from('.hero p', { y: 20, opacity: 0, duration: 1, delay: 0.4, ease: 'power3.out' });
+
+    const items = document.querySelectorAll('.orbit-item');
+    const texts = document.querySelectorAll('.feature-text');
+    const numItems = items.length;
+    const angleStep = 360 / numItems;
+
+    // Calculate dynamic radius based on container size
+    function positionItems() {
+      const orbitRing = document.querySelector('.orbit-ring');
+      const radius = orbitRing.offsetWidth * 0.5; // Half the width
+      
+      items.forEach((item, i) => {
+        let angle = 180 - (i * angleStep);
+        let angleRad = angle * Math.PI / 180;
+        let x = radius * Math.cos(angleRad);
+        let y = radius * Math.sin(angleRad);
+        gsap.set(item, { x: x, y: y });
+      });
+    }
+    
+    positionItems();
+    window.addEventListener('resize', positionItems);
+
+    // Setup 3D Text Wheel
+    texts.forEach((txt, i) => {
+      gsap.set(txt, { yPercent: -50, rotation: -i * angleStep });
+    });
+
+    let activeIndex = -1;
+
+    function updateActiveText(index) {
+      if(index === activeIndex) return;
+      
+      texts.forEach((txt, i) => {
+        if (i === index) {
+          txt.classList.add('active');
+          gsap.killTweensOf(txt);
+          gsap.to(txt, { opacity: 1, duration: 0.8, ease: "power2.out" });
+        } else {
+          if (txt.classList.contains('active')) {
+            gsap.killTweensOf(txt);
+            gsap.to(txt, { opacity: 0, duration: 0.4, ease: "power2.in", onComplete: () => {
+              txt.classList.remove('active');
+            }});
+          }
+        }
+      });
+
+      items.forEach((item, i) => {
+        if (i === index) {
+          item.classList.add('active');
+        } else {
+          item.classList.remove('active');
+        }
+      });
+      
+      activeIndex = index;
+    }
+
+    // Init first item
+    updateActiveText(0);
+
+    function updateTextFromRotation() {
+      let currentRot = gsap.getProperty('.orbit-ring', 'rotation');
+      let rawIndex = Math.round(currentRot / angleStep) % numItems;
+      if(rawIndex < 0) rawIndex += numItems;
+      updateActiveText(rawIndex);
+    }
+
+    // MASTER TIMELINE
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: ".sequence-container",
+        start: "top top",
+        end: "+=18000", // Increased scroll distance for the hero zoom sequence
+        pin: true,
+        scrub: 1
+      }
+    });
+
+    // 0. Hero zooms towards us and fades out
+    tl.to('.hero-content', { scale: 3, opacity: 0, duration: 10, ease: "power2.in" })
+      .to('.hero-glow', { opacity: 0, duration: 10 }, "<")
+
+    // 1. Globe comes from far away (starts emerging before hero fully disappears)
+    tl.to('.globe-wrapper', { scale: 1, opacity: 1, duration: 10, ease: "power2.out" }, "-=6")
+      
+      // 1.5. Icons fade in while the globe is still in the middle
+      .to('.orbit-ring', { opacity: 1, duration: 4 }, "-=4")
+      
+      // 2. Globe moves to the right side and smoothly completes a perfect 360 rotation
+      .to('.globe-positioner', { left: '75vw', duration: 25, ease: "power2.inOut" }, "+=2")
+      .to(['.orbit-ring', '.feature-text-container'], {
+        rotation: 360, // A completely smooth, full circle
+        duration: 25,
+        ease: "power2.inOut",
+        onUpdate: updateTextFromRotation
+      }, "<")
+      .to('.orbit-item-inner', {
+        rotation: -360, // Counter-rotate perfectly
+        duration: 25,
+        ease: "power2.inOut"
+      }, "<")
+      
+      // 3. UI Elements beautifully fade in immediately as it arrives
+      .to('.feature-text-container', { opacity: 1, duration: 5 }, "+=1")
+      .to('.target-reticle-positioner', { opacity: 1, duration: 5 }, "<")
+      
+      // 4. Stepped spin to read all features with scroll pauses
+      let stepRot = 360;
+      for (let i = 1; i <= 5; i++) {
+        stepRot += 60;
+        tl.to(['.orbit-ring', '.feature-text-container'], {
+          rotation: stepRot,
+          duration: 12,
+          ease: "power2.inOut",
+          onUpdate: updateTextFromRotation
+        }, "+=6") // Reduced scroll pause
+        .to('.orbit-item-inner', {
+          rotation: -stepRot,
+          duration: 12,
+          ease: "power2.inOut"
+        }, "<")
+        .to('.target-reticle-spinner', {
+          rotation: "+=90",
+          duration: 12,
+          ease: "power2.inOut"
+        }, "<");
+      }
+
+      // 5. Final pause to let the user read feature 6 before unpinning
+      tl.to({}, { duration: 6 });
+
+    
+  
+    // COMING SOON LOGIC
+    function openComingSoon() {
+      document.getElementById('cs-overlay').classList.add('active');
+      document.getElementById('cs-modal').classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+    function closeComingSoon() {
+      document.getElementById('cs-overlay').classList.remove('active');
+      document.getElementById('cs-modal').classList.remove('active');
+      document.body.style.overflow = '';
+    }
+    document.querySelectorAll('.cs-close').forEach(btn => {
+      btn.addEventListener('mouseenter', () => cursor.classList.add('hover'));
+      btn.addEventListener('mouseleave', () => cursor.classList.remove('hover'));
+    });
+    
+    // Add hover for linkedin button
+    document.querySelectorAll('.linkedin-btn').forEach(btn => {
+      btn.addEventListener('mouseenter', () => cursor.classList.add('hover'));
+      btn.addEventListener('mouseleave', () => cursor.classList.remove('hover'));
+    });
+
+  </script>
+</body>
+</html>

@@ -1,0 +1,94 @@
+# ==============================================================================
+# SECRETS, CREDENTIALS & SENSITIVE TOKENS
+# ==============================================================================
+.env
+.env.local
+.env.*.local
+session.json
+.spotify_token
+current_user.json
+preferences.json
+contacts_sheet_cache.json
+whatsapp_contacts_map.json
+.voice_profile.npy
+.ww_calibration.json
+.ww_session
+.chrome-wa-profile/
+.wa_selenium_profile/
+PyWhatKit_DB.txt
+
+# ==============================================================================
+# DATABASES & LOCAL PERSISTENCE
+# ==============================================================================
+*.db
+*.sqlite
+*.sqlite3
+winvoice.db
+winvoice_state.db
+users.db
+state.db
+users.json
+.chroma_db/
+.chroma_test/
+
+# ==============================================================================
+# LARGE BINARY MODELS & TRAINING DATASETS (>100MB)
+# ==============================================================================
+*.gguf
+llama-3.2-3b_custom.gguf
+pretrained_models/
+mega_agent_dataset.jsonl
+dataset_comprehensive.jsonl
+generate_dataset.py
+generate_training_data.py
+Modelfile
+static/Logo2.png
+
+# ==============================================================================
+# PYTHON RUNTIME, VIRTUAL ENVIRONMENTS & CACHES
+# ==============================================================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.venv/
+venv/
+env/
+ENV/
+.pytest_cache/
+*.log
+
+# ==============================================================================
+# IDE, OS & BUILD ARTIFACTS
+# ==============================================================================
+.idea/
+.vscode/
+Thumbs.db
+ehthumbs.db
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.swp
+*.bak
+templates/*.bak
+build/
+dist/
+node_modules/
+WinVoice_Server.spec
+
+# ==============================================================================
+# SCRATCH, TEST & LEGACY FILES
+# ==============================================================================
+scratch/
+scratch.txt
+scratch_inspect.py
+scratch_selectors.txt
+test.py
+test_*.py
+time_test.py
+crop.py
+_setup_whatsapp.py
+DESIGN-dell-1996.md
+app.py
+gui.py
+docs/.agents/
+docs/.firebase/

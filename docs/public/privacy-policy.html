@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta name="google-site-verification" content="2UF6gNgbHhUxbjsjLYRb7ujoIoEeo89tESq2VsD4y70" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WinVoice — The Ultimate Local AI</title>
+  <link rel="icon" href="assets/logo.png?v=2" type="image/png">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <style>
+    :root {
+      --bg: #020202;
+      --accent: #ff5500;
+      --text: #f4f4f5;
+      --gray: #a1a1aa;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg);
+      background-image: 
+        linear-gradient(rgba(255, 85, 0, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 85, 0, 0.04) 1px, transparent 1px);
+      background-size: 60px 60px;
+      background-position: center center;
+      color: var(--text);
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    ::selection {
+      background: var(--accent);
+      color: #000;
+    }
+    
+    /* CUSTOM CURSOR */
+    body, a, button, .nav-logo, .orbit-item {
+      cursor: none !important;
+    }
+    .custom-cursor {
+      position: fixed; top: 0; left: 0; width: 12px; height: 12px;
+      background-color: var(--accent); border-radius: 50%;
+      pointer-events: none; z-index: 10005;
+      transform: translate(-50%, -50%);
+      box-shadow: 0 0 15px var(--accent);
+      transition: width 0.2s, height 0.2s, background-color 0.2s;
+    }
+    .custom-cursor.hover {
+      width: 40px; height: 40px;
+      background-color: rgba(255,85,0,0.1);
+      border: 2px solid var(--accent);
+    }
+    html, body {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    ::-webkit-scrollbar {
+      display: none;
+    }
+
+    /* NOISE OVERLAY */
+    .noise {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      pointer-events: none;
+      background-image: url('data:image/svg+xml;utf8,%3Csvg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"%3E%3Cfilter id="noiseFilter"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" stitchTiles="stitch"/%3E%3C/filter%3E%3Crect width="100%25" height="100%25" filter="url(%23noiseFilter)"/%3E%3C/svg%3E');
+      opacity: 0.06;
+      z-index: 9999;
+    }
+
+    /* NAVBAR */
+    .nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 24px 48px;
+      background: linear-gradient(to bottom, rgba(2,2,2,0.9), transparent);
+    }
+    .nav-logo {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.5rem; font-weight: 700; color: #fff;
+      display: flex; align-items: center; gap: 12px; text-decoration: none;
+      letter-spacing: -0.5px;
+    }
+    .nav-logo img { width: 32px; height: 32px; border-radius: 8px; }
+    .nav-links { display: flex; gap: 32px; align-items: center; }
+    .nav-links a {
+      color: var(--gray); text-decoration: none; font-size: 0.9rem; font-weight: 500;
+      transition: color 0.3s;
+    }
+    .nav-links a:hover { color: #fff; }
+    .nav-cta {
+      background: var(--accent) !important; color: #fff !important;
+      padding: 10px 24px; border-radius: 100px; font-weight: 600;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .nav-cta:hover { transform: scale(1.05); box-shadow: 0 0 20px rgba(255,85,0,0.4); }
+
+    /* MASTER SEQUENCE CONTAINER */
+    .sequence-container {
+      position: relative; width: 100vw; height: 100vh;
+      overflow: hidden;
+    }
+
+    /* HERO */
+    .hero {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      text-align: center; z-index: 10; pointer-events: none;
+    }
+    .hero-content {
+      display: flex; flex-direction: column; align-items: center; z-index: 2; pointer-events: auto;
+    }
+    .hero h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(3.5rem, 6vw, 5.5rem); font-weight: 800; line-height: 1.1;
+      letter-spacing: -2px; margin-bottom: 24px;
+      color: #ffffff;
+    }
+    .hero .accent { 
+      color: #ff7700;
+      text-shadow: 0 0 20px rgba(255,85,0,0.6);
+      font-weight: 800;
+    }
+    .hero p {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(1.4rem, 2.5vw, 1.8rem); color: #d4c5b9; max-width: 800px;
+      line-height: 1.6; font-weight: 500; letter-spacing: -0.5px;
+    }
+    .char { display: inline-block; position: relative; }
+    .hero-glow {
+      position: absolute; top: 50%; left: 50%; width: 70vw; height: 70vw;
+      transform: translate(-50%, -50%);
+      background: radial-gradient(circle, rgba(255,85,0,0.2) 0%, rgba(200,40,0,0.1) 40%, transparent 70%);
+      filter: blur(90px); pointer-events: none; z-index: -1;
+    }
+
+    /* GLOBE SECTION */
+    .globe-section {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      background: transparent; z-index: 5;
+    }
+
+    /* TEXT CONTAINER (LEFT) */
+    .feature-text-container {
+      position: absolute; top: 0; left: 8vw; width: 38vw; height: 100%;
+      z-index: 200; opacity: 0;
+      transform-origin: 67vw 50%;
+    }
+    .feature-text {
+      position: absolute; top: 50%; left: 0; width: 100%;
+      transform-origin: 67vw 50%;
+      opacity: 0; pointer-events: none;
+    }
+    .feature-text.active {
+      visibility: visible; pointer-events: auto;
+    }
+    .feat-num {
+      font-family: 'Space Grotesk', sans-serif; font-size: 1.1rem; color: var(--accent);
+      font-weight: 700; margin-bottom: 20px; letter-spacing: 3px;
+    }
+    .feature-text h2 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(3rem, 4vw, 5rem); font-weight: 800; color: #fff; margin-bottom: 24px;
+      letter-spacing: -2px; line-height: 1.1;
+    }
+    .feature-text p {
+      font-size: 1.15rem; color: var(--gray); line-height: 1.7;
+    }
+    .example-prompt {
+      font-family: 'Inter', sans-serif;
+      font-size: 1.1rem; color: #fff; font-style: italic;
+      margin-top: 24px; padding-left: 16px; border-left: 2px solid var(--accent);
+      line-height: 1.5; font-weight: 500;
+    }
+    .execution-flow {
+      margin-top: 20px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    }
+    .flow-step {
+      font-family: 'Space Grotesk', sans-serif; font-size: 0.85rem; font-weight: 600;
+      color: var(--accent); background: rgba(255, 85, 0, 0.1);
+      padding: 6px 12px; border-radius: 6px; letter-spacing: 1px; text-transform: uppercase;
+      border: 1px solid rgba(255,85,0,0.2);
+    }
+    .flow-arrow {
+      color: var(--gray); font-size: 0.9rem;
+    }
+
+    /* TARGETING RETICLE (CENTER-LEFT) */
+    .target-reticle-positioner {
+      position: absolute; top: 50%; left: 55vw; 
+      transform: translate(-50%, -50%);
+      width: 140px; height: 140px; z-index: 100;
+      opacity: 0; /* Handled by GSAP */
+    }
+    .target-reticle-spinner {
+      width: 100%; height: 100%; position: relative;
+    }
+    .target-reticle {
+      width: 100%; height: 100%;
+      border: 2px dashed rgba(255, 85, 0, 0.4);
+      border-radius: 50%;
+    }
+    .target-line-top { position: absolute; top: -15px; left: 50%; width: 2px; height: 15px; background: var(--accent); transform: translateX(-50%); }
+    .target-line-bottom { position: absolute; bottom: -15px; left: 50%; width: 2px; height: 15px; background: var(--accent); transform: translateX(-50%); }
+    .target-line-right { position: absolute; right: -15px; top: 50%; height: 2px; width: 15px; background: var(--accent); transform: translateY(-50%); }
+    .target-line-left { position: absolute; left: -15px; top: 50%; height: 2px; width: 15px; background: var(--accent); transform: translateY(-50%); }
+
+    /* 3D GLOBE CONTAINER (RIGHT) */
+    .globe-positioner {
+      position: absolute; top: 50%; left: 50vw; /* Starts centered */
+      width: 40vw; height: 40vw;
+      transform: translate(-50%, -50%);
+      z-index: 50;
+    }
+    .globe-wrapper {
+      width: 100%; height: 100%;
+      transform: scale(0.01); /* Starts tiny and invisible */
+      opacity: 0; 
+      perspective: 1000px;
+    }
+
+    /* GLOBE CENTER HERO LOGO */
+    .globe-hero {
+      position: absolute; top: 50%; left: 50%;
+      width: 140px; height: 140px;
+      transform: translate(-50%, -50%);
+      background: #000; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 0 50px rgba(255, 85, 0, 0.6), inset 0 0 20px rgba(255, 85, 0, 0.3);
+      z-index: 20;
+    }
+    .globe-hero img {
+      width: 80px; height: 80px; border-radius: 16px;
+    }
+    .hero-glow-inner {
+      position: absolute; top: 50%; left: 50%;
+      width: 250px; height: 250px;
+      transform: translate(-50%, -50%);
+      background: radial-gradient(circle, rgba(255,85,0,0.3) 0%, transparent 60%);
+      border-radius: 50%; pointer-events: none; z-index: -1;
+    }
+
+    /* 3D WIREFRAME RINGS */
+    .globe-rings {
+      position: absolute; top: 5%; left: 5%; width: 90%; height: 90%;
+      transform-style: preserve-3d;
+      animation: spinGlobe 25s linear infinite;
+      z-index: 5;
+      pointer-events: none;
+    }
+    @keyframes spinGlobe {
+      from { transform: rotateX(15deg) rotateY(0deg); }
+      to { transform: rotateX(15deg) rotateY(360deg); }
+    }
+    .globe-ring {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      border: 1px solid rgba(255, 85, 0, 0.2);
+      border-radius: 50%;
+    }
+    .r1 { transform: rotateY(0deg); }
+    .r2 { transform: rotateY(45deg); }
+    .r3 { transform: rotateY(90deg); }
+    .r4 { transform: rotateY(135deg); }
+    .r-eq { transform: rotateX(90deg); border: 2px dashed rgba(255, 85, 0, 0.5); }
+
+    /* ORBITING ITEMS RING */
+    .orbit-ring {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      border-radius: 50%; border: 1px dashed rgba(255, 85, 0, 0.15);
+      z-index: 25;
+      opacity: 0; /* Handled by GSAP */
+    }
+    .orbit-item {
+      position: absolute; top: 50%; left: 50%;
+      width: 80px; height: 80px; margin: -40px 0 0 -40px;
+    }
+    .orbit-item-inner {
+      width: 100%; height: 100%;
+      background: #080808; border: 1px solid rgba(255, 85, 0, 0.3);
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-size: 2rem; color: rgba(255,255,255,0.4);
+      transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+    .orbit-item.active .orbit-item-inner {
+      background: rgba(255, 85, 0, 0.2); border-color: var(--accent);
+      color: #fff; transform: scale(1.4);
+      box-shadow: 0 0 40px rgba(255, 85, 0, 0.6), inset 0 0 20px rgba(255, 85, 0, 0.3);
+    }
+
+    /* CTA SECTION */
+    .cta {
+      height: 100vh; width: 100vw;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      background: #000; text-align: center; border-top: 1px solid rgba(255,85,0,0.1);
+      position: relative; overflow: hidden;
+    }
+    .cta h2 { 
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(4rem, 7vw, 6.5rem); font-weight: 800; margin-bottom: 40px; letter-spacing: -3px; line-height: 1;
+    }
+    .cta-btn {
+      display: inline-block; padding: 20px 48px; background: var(--accent); color: #000;
+      font-size: 1.15rem; font-weight: 700; border-radius: 100px; text-decoration: none;
+      box-shadow: 0 10px 40px rgba(255, 85, 0, 0.4); transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .cta-btn:hover { transform: translateY(-4px); box-shadow: 0 20px 60px rgba(255, 85, 0, 0.6); }
+
+    /* FOOTER */
+    footer {
+      padding: 40px 48px; border-top: 1px solid rgba(255,255,255,0.06);
+      display: flex; align-items: center; justify-content: space-between; background: #000;
+    }
+    .footer-left { display: flex; align-items: center; gap: 12px; color: #52525b; font-weight: 600; font-size: 0.9rem; }
+    .footer-left img { width: 22px; height: 22px; border-radius: 6px; opacity: 0.5; }
+    .footer-right { display: flex; gap: 28px; }
+    .footer-right a { color: #52525b; font-size: 0.9rem; font-weight: 500; transition: color 0.2s; }
+    .footer-right a:hover { color: #f4f4f5; }
+
+    @media(max-width:900px){
+      .globe-positioner { width: 70vw; height: 70vw; left: 85vw !important; }
+      .feature-text-container { width: 60vw; left: 5vw; }
+      .target-reticle-positioner { left: 85vw !important; }
+    }
+    @media(max-width:600px){
+      .nav { padding: 16px 20px; }
+      .globe-positioner { width: 120vw; height: 120vw; left: 150vw !important; }
+      .feature-text-container { width: 80vw; left: 5vw; }
+      .target-reticle-positioner { display: none; }
+      footer { flex-direction: column; gap: 20px; }
+    }
+    
+    /* COMING SOON MODAL */
+    .coming-soon-overlay {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(0,0,0,0.8); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      z-index: 10000; opacity: 0; pointer-events: none;
+      transition: opacity 0.4s ease;
+    }
+    .coming-soon-modal {
+      position: fixed; top: 50%; left: 50%; transform: translate(-50%, -40%);
+      width: 90%; max-width: 500px; background: #050505;
+      border: 1px solid rgba(255,85,0,0.2); border-radius: 24px;
+      padding: 48px; text-align: center; z-index: 10001;
+      opacity: 0; pointer-events: none;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.8), inset 0 0 40px rgba(255,85,0,0.05);
+      transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    .coming-soon-modal.active, .coming-soon-overlay.active {
+      opacity: 1; pointer-events: auto;
+    }
+    .coming-soon-modal.active { transform: translate(-50%, -50%); }
+    
+
+    .coming-soon-modal h3 {
+      font-family: 'Syne', sans-serif; font-size: 2.8rem; font-weight: 800;
+      color: #ffffff; margin-bottom: 24px; letter-spacing: -1.5px; line-height: 1.1;
+    }
+    .coming-soon-modal p {
+      font-family: 'Space Grotesk', sans-serif; font-size: 1.25rem; color: #d4c5b9;
+      line-height: 1.6; margin-bottom: 32px; font-weight: 500; letter-spacing: -0.5px;
+    }
+    .coming-soon-modal a {
+      display: inline-block; padding: 14px 32px; background: var(--accent); color: #000;
+      font-size: 1rem; font-weight: 700; border-radius: 100px; text-decoration: none;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .coming-soon-modal a:hover {
+      transform: translateY(-2px); box-shadow: 0 10px 20px rgba(255,85,0,0.4);
+    }
+    .cs-close {
+      position: absolute; top: 20px; right: 20px; background: transparent;
+      border: none; color: #52525b; font-size: 24px; cursor: none;
+      transition: color 0.2s;
+    }
+    .cs-close:hover { color: #fff; }
+
+  
+    /* LINKEDIN CTA */
+    .linkedin-cta {
+      padding: 100px 20px 80px;
+      text-align: center;
+      border-top: 1px solid rgba(255,255,255,0.05);
+      background: radial-gradient(circle at top, rgba(255,85,0,0.03) 0%, transparent 60%), #000;
+      position: relative;
+    }
+    .linkedin-content {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    .linkedin-content h2 {
+      font-family: 'Syne', sans-serif; font-size: 2.8rem; font-weight: 800; letter-spacing: -1.5px; margin-bottom: 16px; color: #fff; line-height: 1.1;
+    }
+    .linkedin-content p {
+      font-family: 'Space Grotesk', sans-serif; color: #a1a1aa; font-size: 1.15rem; line-height: 1.6; margin-bottom: 36px;
+    }
+    .linkedin-btn {
+      display: inline-flex; align-items: center; gap: 12px;
+      padding: 16px 40px; background: rgba(255,255,255,0.03); color: #fff;
+      border: 1px solid rgba(255,255,255,0.1); border-radius: 100px;
+      font-size: 1.1rem; font-weight: 600; text-decoration: none;
+      transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+    .linkedin-btn svg { width: 20px; height: 20px; fill: currentColor; }
+    .linkedin-btn:hover {
+      background: #0077b5;
+      border-color: #0077b5;
+      transform: translateY(-4px);
+      box-shadow: 0 15px 40px rgba(0, 119, 181, 0.4);
+    }
+
+  </style>
+</head>
+<body>
+  
+  <div class="noise"></div>
+
+  <nav class="nav">
+    <a href="/" class="nav-logo"><img src="assets/logo.png" alt="WinVoice">WinVoice</a>
+    <div class="nav-links">
+      <a href="/about">About</a>
+      <a href="/privacy-policy">Privacy</a>
+      <a href="/terms">Terms</a>
+      <a href="#" onclick="openComingSoon(); return false;" class="nav-cta" style="cursor: default; opacity: 0.8;">Coming Soon</a>
+    </div>
+  </nav>
+  <style>
+    .legal-page-container { max-width: 800px; margin: 150px auto 100px; padding: 0 40px; color: #f4f4f5; } 
+    .legal-page-container h1 { font-family: "Syne", sans-serif; font-size: 3rem; margin-bottom: 10px; font-weight: 800; letter-spacing: -1px; } 
+    .legal-page-container .date { color: #ff5500; font-family: "Space Grotesk", sans-serif; font-size: 0.9rem; font-weight: 600; display: block; margin-bottom: 40px; letter-spacing: 1px; text-transform: uppercase; } 
+    .legal-page-container h2 { font-family: "Space Grotesk", sans-serif; font-size: 1.5rem; color: #fff; margin: 40px 0 16px; font-weight: 700; } 
+    .legal-page-container p, .legal-page-container ul { font-size: 1.05rem; line-height: 1.8; color: #a1a1aa; margin-bottom: 16px; } 
+    .legal-page-container ul { padding-left: 24px; margin-bottom: 24px; } 
+    .legal-page-container li { margin-bottom: 12px; } 
+    .legal-page-container strong { color: #fff; }
+    .back-btn-fixed { position: fixed; top: 100px; left: 48px; width: 44px; height: 44px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #a1a1aa; transition: all 0.3s; z-index: 900; }
+    .back-btn-fixed:hover { background: rgba(255,85,0,0.2); border-color: var(--accent); color: #fff; transform: translateX(-4px); }
+  
+    /* COMING SOON MODAL */
+    .coming-soon-overlay {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(0,0,0,0.8); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      z-index: 10000; opacity: 0; pointer-events: none;
+      transition: opacity 0.4s ease;
+    }
+    .coming-soon-modal {
+      position: fixed; top: 50%; left: 50%; transform: translate(-50%, -40%);
+      width: 90%; max-width: 500px; background: #050505;
+      border: 1px solid rgba(255,85,0,0.2); border-radius: 24px;
+      padding: 48px; text-align: center; z-index: 10001;
+      opacity: 0; pointer-events: none;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.8), inset 0 0 40px rgba(255,85,0,0.05);
+      transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    .coming-soon-modal.active, .coming-soon-overlay.active {
+      opacity: 1; pointer-events: auto;
+    }
+    .coming-soon-modal.active { transform: translate(-50%, -50%); }
+    
+
+    .coming-soon-modal h3 {
+      font-family: 'Syne', sans-serif; font-size: 2.8rem; font-weight: 800;
+      color: #ffffff; margin-bottom: 24px; letter-spacing: -1.5px; line-height: 1.1;
+    }
+    .coming-soon-modal p {
+      font-family: 'Space Grotesk', sans-serif; font-size: 1.25rem; color: #d4c5b9;
+      line-height: 1.6; margin-bottom: 32px; font-weight: 500; letter-spacing: -0.5px;
+    }
+    .coming-soon-modal a {
+      display: inline-block; padding: 14px 32px; background: var(--accent); color: #000;
+      font-size: 1rem; font-weight: 700; border-radius: 100px; text-decoration: none;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .coming-soon-modal a:hover {
+      transform: translateY(-2px); box-shadow: 0 10px 20px rgba(255,85,0,0.4);
+    }
+    .cs-close {
+      position: absolute; top: 20px; right: 20px; background: transparent;
+      border: none; color: #52525b; font-size: 24px; cursor: none;
+      transition: color 0.2s;
+    }
+    .cs-close:hover { color: #fff; }
+
+  
+    /* LINKEDIN CTA */
+    .linkedin-cta {
+      padding: 100px 20px 80px;
+      text-align: center;
+      border-top: 1px solid rgba(255,255,255,0.05);
+      background: radial-gradient(circle at top, rgba(255,85,0,0.03) 0%, transparent 60%), #000;
+      position: relative;
+    }
+    .linkedin-content {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    .linkedin-content h2 {
+      font-family: 'Syne', sans-serif; font-size: 2.8rem; font-weight: 800; letter-spacing: -1.5px; margin-bottom: 16px; color: #fff; line-height: 1.1;
+    }
+    .linkedin-content p {
+      font-family: 'Space Grotesk', sans-serif; color: #a1a1aa; font-size: 1.15rem; line-height: 1.6; margin-bottom: 36px;
+    }
+    .linkedin-btn {
+      display: inline-flex; align-items: center; gap: 12px;
+      padding: 16px 40px; background: rgba(255,255,255,0.03); color: #fff;
+      border: 1px solid rgba(255,255,255,0.1); border-radius: 100px;
+      font-size: 1.1rem; font-weight: 600; text-decoration: none;
+      transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+    .linkedin-btn svg { width: 20px; height: 20px; fill: currentColor; }
+    .linkedin-btn:hover {
+      background: #0077b5;
+      border-color: #0077b5;
+      transform: translateY(-4px);
+      box-shadow: 0 15px 40px rgba(0, 119, 181, 0.4);
+    }
+
+  </style>
+
+<a href="/" class="back-btn-fixed">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <line x1="19" y1="12" x2="5" y2="12"></line>
+    <polyline points="12 19 5 12 12 5"></polyline>
+  </svg>
+</a>
+<div class="legal-page-container">
+<h1>Privacy Policy</h1>
+      <span class="date">Last Updated: September 13, 2026</span>
+
+      <h2>1. Introduction</h2>
+      <p>WinVoice ("we", "our", or "us") respects your privacy and is committed to protecting your personal data. This Privacy Policy explains how our desktop application processes your information, including your interactions with third-party services like Google and Spotify.</p>
+
+      <h2>2. Google User Data We Process</h2>
+      <p>To provide user-requested assistant capabilities, WinVoice requests authorized access to your Google account via OAuth 2.0. Specifically, we request the following permissions:</p>
+      <ul>
+        <li><strong>Gmail (<code>https://www.googleapis.com/auth/gmail.modify</code>, <code>https://www.googleapis.com/auth/gmail.send</code>):</strong> To notify you of unread emails, summarize message threads upon your request, and draft or send emails on your behalf based on your direct voice or text commands.</li>
+        <li><strong>Google Calendar (<code>https://www.googleapis.com/auth/calendar.events</code>):</strong> To verbally remind you of upcoming meetings and schedule, modify, or delete calendar events upon your direct instruction.</li>
+        <li><strong>Google Drive (<code>https://www.googleapis.com/auth/drive.readonly</code>):</strong> To search for and locate your files and folders on Google Drive so the assistant can reference them when you ask.</li>
+        <li><strong>Google Docs & Sheets (<code>https://www.googleapis.com/auth/documents</code>, <code>https://www.googleapis.com/auth/spreadsheets</code>):</strong> To read, summarize, query, or update documents and spreadsheets as commanded by the user.</li>
+        <li><strong>Google Tasks (<code>https://www.googleapis.com/auth/tasks</code>):</strong> To read, create, update, and organize your to-do lists and tasks upon your request.</li>
+      </ul>
+
+      <h2>3. Permitted Use of Google User Data (Strict Limited Use)</h2>
+      <p><strong>WinVoice uses Google user data strictly and exclusively to provide and improve user-facing features and application functionality directly requested by the user.</strong></p>
+      <p>Specifically:</p>
+      <ul>
+        <li>Google user data is used solely to execute user-initiated actions (such as sending a voice-dictated email, retrieving calendar agendas, querying files, or managing task lists).</li>
+        <li><strong>No Advertising:</strong> WinVoice does <strong>NOT</strong> use or transfer Google user data for serving advertisements, including personalized, retargeted, or interest-based advertising.</li>
+        <li><strong>No AI Model Training:</strong> WinVoice does <strong>NOT</strong> use Google user data to train, retrain, fine-tune, or improve generalized machine learning (ML) or artificial intelligence (AI) models. All AI inference is performed locally and ephemerally on the user's hardware.</li>
+        <li><strong>No Human Inspection:</strong> No human beings are permitted to read or inspect your Google user data unless you provide explicit permission for technical support, it is required for security investigations, or it is required by law.</li>
+        <li><strong>No Secondary Uses:</strong> Google user data is never utilized for any purpose other than providing the core assistant functionality explicitly invoked by the user.</li>
+      </ul>
+
+      <h2>4. Sharing, Transfer, and Disclosure of Google User Data</h2>
+      <p><strong>WinVoice does NOT share, sell, rent, trade, transfer, or disclose Google user data to any third parties under any circumstances.</strong></p>
+      <ul>
+        <li>We do not transfer Google user data to third-party advertising networks, data brokers, analytics providers, or external cloud services.</li>
+        <li>All Google user data fetched through authorized Google APIs is processed <strong>strictly locally on your personal computer</strong>.</li>
+        <li>We do not employ any external cloud subprocessors or third-party servers to process or store your Google user data.</li>
+      </ul>
+
+      <h2>5. Data Protection and Security Mechanisms for Sensitive Data</h2>
+      <p>WinVoice implements industry-standard technical and operational safeguards to protect sensitive and restricted Google user data:</p>
+      <ul>
+        <li><strong>Encryption in Transit:</strong> All communication between the WinVoice desktop application and Google APIs is encrypted in transit using industry-standard Transport Layer Security (TLS 1.2 and TLS 1.3) cryptographic protocols over HTTPS.</li>
+        <li><strong>Encryption at Rest:</strong> Google OAuth access tokens, refresh tokens, and user credentials stored locally on your device are encrypted at rest using operating system-level encryption (Windows Data Protection API - DPAPI with AES-256 equivalent), ensuring that only your authenticated Windows user account can access the stored tokens.</li>
+        <li><strong>Zero Remote Server Storage:</strong> WinVoice maintains no central servers or external databases containing your emails, calendar events, documents, or Google OAuth credentials. Tokens exist only on your local disk, and retrieved content exists only in local system memory during active execution.</li>
+        <li><strong>Access Control:</strong> Only the locally running WinVoice application process has access to decrypted API tokens. No other applications or remote entities are granted access.</li>
+        <li><strong>Data Retention and Deletion:</strong> Data fetched from Google APIs is processed ephemerally in memory and is not permanently stored. If you choose to disconnect your Google account or delete your session from the WinVoice settings, all locally stored OAuth tokens and cached data are permanently deleted from your computer immediately.</li>
+      </ul>
+
+      <h2>6. App Preferences & Non-Google Account Data</h2>
+      <p>Any optional cloud synchronization provided by WinVoice is strictly limited to basic application preferences (such as custom keyboard shortcuts and UI theme settings) and account authentication (username and securely hashed password). <strong>No Google user data, emails, calendar events, documents, or Google OAuth tokens are ever synced or stored on our cloud servers.</strong></p>
+
+      <h2>7. User Control & Revoking Access</h2>
+      <p>You maintain complete control over your data at all times:</p>
+      <ul>
+        <li>You can disconnect your Google account at any time within the WinVoice Settings window, which immediately purges all local OAuth credentials from your device.</li>
+        <li>You can revoke WinVoice's access at any time through your Google Account permissions page at <a href="https://myaccount.google.com/permissions" target="_blank" style="color: var(--accent); text-decoration: underline;">https://myaccount.google.com/permissions</a>. Once revoked, WinVoice cannot access any Google APIs or user data.</li>
+      </ul>
+
+      <h2>8. Google API Services User Data Policy Compliance</h2>
+      <p>WinVoice's use and transfer to any other app of information received from Google APIs will adhere to the <a href="https://developers.google.com/terms/api-services-user-data-policy" target="_blank" style="color: var(--accent); text-decoration: underline;">Google API Services User Data Policy</a>, including the Limited Use requirements.</p>
+
+      <h2>9. Contact Us</h2>
+      <p>If you have any questions, concerns, or requests regarding this Privacy Policy or our data protection practices, please contact us at <strong>support.winvoice@gmail.com</strong>.</p>
+    
+</div>
+
+  <footer>
+    <div class="footer-left"><img src="assets/logo.png" alt="Logo">WinVoice &copy; 2026</div>
+    <div class="footer-right">
+      <a href="/about">About</a>
+      <a href="/privacy-policy">Privacy Policy</a>
+      <a href="/terms">Terms of Service</a>
+      <a href="mailto:support.winvoice@gmail.com">Contact</a>
+      <a href="https://www.linkedin.com/company/winvoice-app/" target="_blank">LinkedIn</a>
+    </div>
+  </footer>
+  
+  <!-- COMING SOON MODAL -->
+  <div class="coming-soon-overlay" id="cs-overlay" onclick="closeComingSoon()"></div>
+  <div class="coming-soon-modal" id="cs-modal">
+    <button class="cs-close" onclick="closeComingSoon()">&times;</button>
+    
+    <h3>We know you're <span style="color: var(--accent);">excited.</span></h3>
+    <p><span style="color: #fff; font-weight: 700;">WinVoice</span> is currently in <span style="color: var(--accent);">closed beta</span>. We're putting the final polish on the <span style="color: var(--accent);">ultimate local AI</span> experience.</p>
+    <p style="font-size: 0.9rem; margin-bottom: 24px;">For early access and updates, follow us on LinkedIn.</p>
+    <a href="https://www.linkedin.com/company/winvoice-app/" target="_blank">Visit LinkedIn</a>
+  </div>
+
+  <script>
+    const cursor = document.createElement("div");
+    cursor.classList.add("custom-cursor");
+    document.body.appendChild(cursor);
+    document.addEventListener("mousemove", e => { cursor.style.left = e.clientX + "px"; cursor.style.top = e.clientY + "px"; });
+    document.querySelectorAll("a, button").forEach(btn => { 
+        btn.addEventListener("mouseenter", () => cursor.classList.add("hover")); 
+        btn.addEventListener("mouseleave", () => cursor.classList.remove("hover")); 
+    });
+  
+    // COMING SOON LOGIC
+    function openComingSoon() {
+      document.getElementById('cs-overlay').classList.add('active');
+      document.getElementById('cs-modal').classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+    function closeComingSoon() {
+      document.getElementById('cs-overlay').classList.remove('active');
+      document.getElementById('cs-modal').classList.remove('active');
+      document.body.style.overflow = '';
+    }
+    document.querySelectorAll('.cs-close').forEach(btn => {
+      btn.addEventListener('mouseenter', () => cursor.classList.add('hover'));
+      btn.addEventListener('mouseleave', () => cursor.classList.remove('hover'));
+    });
+    
+    // Add hover for linkedin button
+    document.querySelectorAll('.linkedin-btn').forEach(btn => {
+      btn.addEventListener('mouseenter', () => cursor.classList.add('hover'));
+      btn.addEventListener('mouseleave', () => cursor.classList.remove('hover'));
+    });
+
+  </script>
+</body>
+</html>

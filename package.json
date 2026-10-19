@@ -1,0 +1,43 @@
+{
+  "name": "winvoice_v4_anti_2",
+  "version": "1.0.0",
+  "description": "**WinVoice** is a professional, background-running desktop automation agent for Windows. It allows you to control your apps, browse the web, and execute complex multi-step workflows using natural voice commands.",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^42.3.0",
+    "electron-builder": "^26.8.1"
+  },
+  "dependencies": {
+    "which": "^6.0.1"
+  },
+  "build": {
+    "appId": "com.winvoice.app",
+    "productName": "WinVoice",
+    "win": {
+      "target": "nsis",
+      "icon": "assets/logo.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "WinVoice"
+    },
+    "extraResources": [
+      "dist/winvoice_server.exe",
+      "llama-3.2-3b_custom.gguf",
+      "Modelfile",
+      "hey_win_voice.onnx",
+      "hey_win_voice.tflite",
+      "OllamaSetup.exe"
+    ]
+  }
+}

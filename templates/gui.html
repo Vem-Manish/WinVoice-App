@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Win Voice | Authentication</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg: #F4F4F1;
+            --accent-orange: #FF5F2E;
+            --accent-yellow: #E6FF55;
+            --dark: #111111;
+            --white: #ffffff;
+            --border: 2px solid #111111;
+            --shadow: 8px 8px 0px #111111;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background-color: var(--bg); display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; color: var(--dark); }
+
+        .main-container {
+            display: flex;
+            width: 100%;
+            max-width: 1100px;
+            height: 750px;
+            background: var(--white);
+            border: var(--border);
+            border-radius: 40px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        /* --- Auth Side --- */
+        .auth-side { flex: 1; padding: 60px; display: flex; flex-direction: column; justify-content: center; position: relative; background: var(--white); }
+        .form-box { display: none; animation: fadeIn 0.4s ease; }
+        .form-box.active { display: block; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .brand { display: flex; align-items: center; gap: 12px; margin-bottom: 40px; }
+        .brand i { background: var(--dark); color: var(--white); padding: 8px; border-radius: 10px; font-size: 1.2rem; }
+        .brand span { font-size: 1.4rem; font-weight: 800; color: var(--dark); }
+
+        h2 { font-size: 2.2rem; font-weight: 800; margin-bottom: 10px; line-height: 1; }
+        .subtitle { color: #555; margin-bottom: 35px; font-size: 0.95rem; font-weight: 500; }
+
+        #msg { padding: 15px; border: var(--border); border-radius: 12px; margin-bottom: 20px; font-weight: 700; display: none; text-align: center; }
+
+        .input-group { margin-bottom: 20px; position: relative; }
+        .input-group label { display: block; font-size: 0.85rem; font-weight: 800; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .input-group input {
+            width: 100%;
+            padding: 15px;
+            border: var(--border);
+            border-radius: 15px;
+            outline: none;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: 0.2s;
+        }
+        .input-group input:focus { background: var(--bg); }
+
+        .toggle-password { position: absolute; right: 15px; bottom: 15px; cursor: pointer; color: var(--dark); }
+
+        .btn-main {
+            width: 100%;
+            background: var(--accent-orange);
+            color: white;
+            padding: 18px;
+            border: var(--border);
+            border-radius: 50px;
+            font-weight: 800;
+            font-size: 1.1rem;
+            cursor: pointer;
+            box-shadow: 4px 4px 0px var(--dark);
+            transition: 0.2s;
+            margin-top: 10px;
+        }
+        .btn-main:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0px var(--dark); }
+
+        .divider { text-align: center; margin: 30px 0; border-bottom: 2px solid var(--dark); line-height: 0.1em; }
+        .divider span { background: #fff; padding: 0 15px; color: var(--dark); font-weight: 800; font-size: 0.8rem; }
+
+        .social-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .btn-social {
+            padding: 12px;
+            border: var(--border);
+            background: white;
+            border-radius: 15px;
+            cursor: pointer;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: 0.2s;
+        }
+        .btn-social:hover { background: var(--accent-yellow); }
+
+        .toggle-text { text-align: center; margin-top: 35px; font-size: 0.95rem; font-weight: 600; }
+        .toggle-text a { color: var(--accent-orange); text-decoration: underline; font-weight: 800; cursor: pointer; }
+
+        .forgot-link { display: block; text-align: right; font-size: 0.85rem; font-weight: 700; color: var(--dark); text-decoration: none; margin-top: -10px; margin-bottom: 25px; cursor: pointer; }
+
+        /* --- Visual Side (Dark Theme) --- */
+        .visual-side {
+            flex: 1.2;
+            background: var(--dark);
+            padding: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            border-left: var(--border);
+        }
+        .visual-content { max-width: 420px; }
+        .visual-content h1 { font-size: 3rem; margin-bottom: 25px; line-height: 1.1; font-weight: 800; }
+        .visual-content p { color: #94a3b8; line-height: 1.6; margin-bottom: 40px; font-size: 1.1rem; }
+
+        .feature-card {
+            background: #EEF2FF;
+            border: var(--border);
+            border-radius: 30px;
+            padding: 30px;
+            color: var(--dark);
+            box-shadow: 8px 8px 0px var(--accent-orange);
+        }
+        .voice-waves { display: flex; align-items: center; gap: 6px; height: 30px; margin-bottom: 15px; }
+        .wave { width: 5px; background: var(--accent-orange); border-radius: 10px; animation: wave-anim 1s infinite ease-in-out; }
+        .wave:nth-child(2) { animation-delay: 0.1s; }
+        .wave:nth-child(3) { animation-delay: 0.2s; }
+        .wave:nth-child(4) { animation-delay: 0.3s; }
+
+        @keyframes wave-anim { 0%, 100% { height: 10px; } 50% { height: 28px; } }
+
+        @media (max-width: 950px) { .visual-side { display: none; } .main-container { max-width: 500px; height: auto; border-radius: 30px; } }
+    </style>
+</head>
+<body>
+
+    <main class="main-container">
+        <section class="auth-side">
+            <div id="msg"></div>
+
+            <div id="login-form" class="form-box active">
+                <div class="brand"><img src="/assets/logo.png?v=4" style="width:36px;height:36px;border-radius:50%;object-fit:contain;"><span>WinVoice</span></div>
+                <h2>Welcome back</h2>
+                <p class="subtitle">Enter your credentials to start your agent.</p>
+                <form id="loginForm">
+                    <div class="input-group">
+                        <label>Email Address</label>
+                        <input type="email" id="loginEmail" placeholder="name@company.com" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Password</label>
+                        <input type="password" id="loginPass" placeholder="••••••••" required>
+                        <i class="far fa-eye toggle-password" onclick="togglePasswordVisibility('loginPass', this)"></i>
+                    </div>
+                    <button type="submit" class="btn-main">Sign In Now</button>
+                </form>
+                <p class="toggle-text">New to Win Voice? <a onclick="toggleForm('signup')">Create an account</a></p>
+            </div>
+
+            <div id="signup-form" class="form-box">
+                <div class="brand"><img src="/assets/logo.png?v=4" style="width:36px;height:36px;border-radius:50%;object-fit:contain;"><span>WinVoice</span></div>
+                <h2>Create Account</h2>
+                <p class="subtitle">Join the future of voice-controlled automation.</p>
+                <form id="signupForm">
+                    <div class="input-group"><label>Full Name</label><input type="text" id="regName" placeholder="Your Name" required></div>
+                    <div class="input-group"><label>Work Email</label><input type="email" id="regEmail" placeholder="name@company.com" required></div>
+                    <div class="input-group">
+                        <label>Create Password</label>
+                        <input type="password" id="regPass" placeholder="••••••••" required>
+                        <i class="far fa-eye toggle-password" onclick="togglePasswordVisibility('regPass', this)"></i>
+                    </div>
+                    <button type="submit" class="btn-main">Get Started</button>
+                </form>
+                <p class="toggle-text">Already have an account? <a onclick="toggleForm('login')">Login here</a></p>
+            </div>
+
+            <div id="forgot-form" class="form-box">
+                <div class="brand"><img src="/assets/logo.png?v=4" style="width:36px;height:36px;border-radius:50%;object-fit:contain;"><span>WinVoice</span></div>
+                <h2>Reset Password</h2>
+                <p class="subtitle">Enter your email to receive a simulation OTP.</p>
+                <form id="forgotForm">
+                    <div class="input-group"><label>Registered Email</label><input type="email" id="forgotEmail" required></div>
+                    <div id="otp-section" style="display:none;">
+                        <div class="input-group"><label>Enter OTP</label><input type="text" id="inputOtp"></div>
+                        <div class="input-group"><label>New Password</label><input type="password" id="newPass"></div>
+                    </div>
+                    <button type="submit" id="forgotBtn" class="btn-main">Send OTP</button>
+                </form>
+                <p class="toggle-text"><a onclick="toggleForm('login')">Back to Login</a></p>
+            </div>
+        </section>
+
+        <section class="visual-side">
+            <div class="visual-content">
+                <h1>Smarter control, <span style="color: var(--accent-yellow);">zero effort.</span></h1>
+                <p>Win Voice runs in your system tray, listening for your specific triggers to make computing faster than ever.</p>
+                <div class="feature-card">
+                    <div class="voice-waves">
+                        <div class="wave"></div><div class="wave"></div><div class="wave"></div><div class="wave"></div>
+                        <span style="margin-left: 10px; font-size: 0.75rem; font-weight: 800; letter-spacing: 1px;">LISTENING...</span>
+                    </div>
+                    <p style="font-style: italic; font-weight: 700; color: var(--dark); font-size: 0.95rem;">
+                        "Hey Win Voice, find my latest PDF and send it to Slack."
+                    </p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // ... (All your original JavaScript remains here exactly the same) ...
+        let generatedOtp = null;
+        function toggleForm(type) {
+            document.getElementById('msg').style.display = 'none';
+            ['login-form', 'signup-form', 'forgot-form'].forEach(id => {
+                document.getElementById(id).classList.remove('active');
+            });
+            document.getElementById(type + '-form').classList.add('active');
+        }
+        function togglePasswordVisibility(inputId, icon) {
+            const input = document.getElementById(inputId);
+            if (input.type === "password") {
+                input.type = "text";
+                icon.classList.replace('fa-eye', 'fa-eye-slash');
+            } else {
+                input.type = "password";
+                icon.classList.replace('fa-eye-slash', 'fa-eye');
+            }
+        }
+        function showMsg(text, type) {
+            const msgDiv = document.getElementById('msg');
+            msgDiv.innerText = text;
+            msgDiv.style.display = 'block';
+            msgDiv.style.backgroundColor = type === 'success' ? '#E6FF55' : '#FF5F2E';
+            msgDiv.style.color = type === 'success' ? '#111' : '#fff';
+        }
+        // [REST OF YOUR API HANDLERS - SIGNUP/LOGIN/FORGOT - COPY PASTE FROM YOUR ORIGINAL]
+        document.getElementById('signupForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const formData = new FormData();
+            formData.append('name', document.getElementById('regName').value);
+            formData.append('email', document.getElementById('regEmail').value);
+            formData.append('password', document.getElementById('regPass').value);
+            try {
+                const response = await fetch('/signup', { method: 'POST', body: formData });
+                const result = await response.json();
+                if (result.status === "success") {
+                    showMsg("Account created! Log in.", "success");
+                    setTimeout(() => toggleForm('login'), 1500);
+                } else { showMsg(result.message || "Signup failed.", "error"); }
+            } catch (error) { showMsg("Connection error.", "error"); }
+        });
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const formData = new FormData();
+            formData.append('email', document.getElementById('loginEmail').value);
+            formData.append('password', document.getElementById('loginPass').value);
+            try {
+                const response = await fetch('/login', {
+    method: 'POST',
+    body: formData
+});
+                const result = await response.json();
+                if (result.status === "success") {
+                    showMsg("Login successful!", "success");
+                    localStorage.setItem('currentUserEmail', document.getElementById('loginEmail').value);
+                    setTimeout(() => { window.location.href = result.redirect; }, 1000);
+                } else { showMsg(result.message || "Invalid credentials.", "error"); }
+            } catch (error) { showMsg("Server error.", "error"); }
+        });
+        document.getElementById('forgotForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const email = document.getElementById('forgotEmail').value;
+            if (!generatedOtp) {
+                generatedOtp = Math.floor(100000 + Math.random() * 900000);
+                alert("SIMULATION: OTP is: " + generatedOtp);
+                document.getElementById('otp-section').style.display = 'block';
+                document.getElementById('forgotBtn').innerText = "Reset Password";
+                showMsg("OTP sent (simulated).", "success");
+            } else {
+                if (document.getElementById('inputOtp').value == generatedOtp) {
+                    showMsg("Password reset!", "success");
+                    setTimeout(() => location.reload(), 1500);
+                } else { showMsg("Incorrect OTP!", "error"); }
+            }
+        });
+    </script>
+</body>

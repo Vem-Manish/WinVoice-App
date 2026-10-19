@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Architecture — WinVoice</title>
+  <link rel="icon" href="assets/logo.png?v=2" type="image/png">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/MotionPathPlugin.min.js"></script>
+  <style>
+    :root {
+      --bg: #030303;
+      --accent: #ff5500;
+      --accent-glow: rgba(255, 85, 0, 0.4);
+      --text: #f4f4f5;
+      --gray: #a1a1aa;
+      --surface-border: rgba(255,255,255,0.06);
+    }
+    
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* PREMIUM DYNAMIC BACKGROUND MESH */
+    .mesh-bg {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      z-index: 0; overflow: hidden; filter: blur(100px); opacity: 0.3; pointer-events: none;
+    }
+    .blob { position: absolute; border-radius: 50%; animation: float 25s infinite alternate ease-in-out; }
+    .blob-1 { width: 800px; height: 800px; background: rgba(255, 60, 0, 0.15); top: -200px; left: -200px; }
+    .blob-2 { width: 900px; height: 900px; background: rgba(255, 120, 0, 0.1); bottom: -300px; right: -200px; animation-delay: -5s; }
+    .blob-3 { width: 700px; height: 700px; background: rgba(255, 30, 0, 0.12); top: 30%; left: 40%; animation-delay: -12s; }
+    
+    @keyframes float { 
+      0% { transform: translate(0, 0) scale(1) rotate(0deg); } 
+      100% { transform: translate(150px, 150px) scale(1.3) rotate(45deg); } 
+    }
+
+    .grid-bg {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background-image: linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+      background-size: 40px 40px; z-index: 1; pointer-events: none;
+      mask-image: radial-gradient(circle at center, black 40%, transparent 90%);
+      -webkit-mask-image: radial-gradient(circle at center, black 40%, transparent 90%);
+    }
+    .noise {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background-image: url('data:image/svg+xml;utf8,%3Csvg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"%3E%3Cfilter id="noiseFilter"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="3" stitchTiles="stitch"/%3E%3C/filter%3E%3Crect width="100%25" height="100%25" filter="url(%23noiseFilter)"/%3E%3C/svg%3E');
+      opacity: 0.025; z-index: 9999; pointer-events: none;
+    }
+
+    ::selection { background: var(--accent); color: #000; }
+    
+    /* CUSTOM CURSOR */
+    body, a, button { cursor: none !important; }
+    .custom-cursor {
+      position: fixed; top: 0; left: 0; width: 8px; height: 8px;
+      background-color: var(--accent); border-radius: 50%;
+      pointer-events: none; z-index: 10005;
+      transform: translate(-50%, -50%);
+      box-shadow: 0 0 15px var(--accent);
+      transition: width 0.3s, height 0.3s, background-color 0.3s, box-shadow 0.3s;
+    }
+    .custom-cursor.hover {
+      width: 60px; height: 60px; background-color: transparent;
+      border: 1px solid rgba(255,85,0,0.5); box-shadow: inset 0 0 20px rgba(255,85,0,0.2);
+    }
+
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(255,85,0,0.5); }
+
+    /* NAVBAR */
+    .nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 24px 48px;
+      background: linear-gradient(to bottom, rgba(3,3,3,0.95), transparent);
+      backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    }
+    .nav-logo {
+      font-family: 'Space Grotesk', sans-serif; font-size: 1.5rem; font-weight: 700; color: #fff;
+      display: flex; align-items: center; gap: 12px; text-decoration: none; letter-spacing: -0.5px;
+    }
+    .nav-logo img { width: 32px; height: 32px; border-radius: 8px; }
+    .nav-links { display: flex; gap: 32px; align-items: center; }
+    .nav-links a { color: var(--gray); text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: color 0.3s; }
+    .nav-links a:hover { color: #fff; }
+    .nav-cta {
+      background: rgba(255,85,0,0.1) !important; color: var(--accent) !important;
+      border: 1px solid rgba(255,85,0,0.3);
+      padding: 10px 24px; border-radius: 100px; font-weight: 600;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .nav-cta:hover { background: var(--accent) !important; color: #000 !important; box-shadow: 0 0 30px rgba(255,85,0,0.4); transform: translateY(-2px); }
+
+    /* HEADER */
+    .header {
+      padding: 220px 20px 80px; text-align: center; position: relative; z-index: 10;
+    }
+    .header h1 {
+      font-family: 'Inter', sans-serif; font-size: 4.5rem; font-weight: 800;
+      letter-spacing: -2.5px; margin-bottom: 24px;
+      background: linear-gradient(180deg, #fff 0%, #a1a1aa 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .header h1 span { 
+      background: linear-gradient(135deg, #ff5500 0%, #ff8800 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .header p {
+      font-family: 'Inter', sans-serif; font-size: 1.15rem; color: var(--gray); font-weight: 400;
+      max-width: 650px; margin: 0 auto; line-height: 1.7; letter-spacing: -0.2px;
+    }
+
+    /* TREE LAYOUT */
+    #tree-container {
+      position: relative; max-width: 1400px; margin: 0 auto 150px;
+      padding: 40px 20px; z-index: 10; display: flex; flex-direction: column; align-items: center;
+    }
+
+    /* SVG Canvas */
+    #connections {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      z-index: 0; pointer-events: none;
+    }
+    .tree-path { fill: none; stroke: var(--surface-border); stroke-width: 2px; }
+    .tree-glow {
+      fill: none; stroke: var(--accent); stroke-width: 3px; stroke-linecap: round;
+      filter: drop-shadow(0 0 15px var(--accent));
+      /* Removed dasharray/offset to keep lines permanently visible */
+    }
+
+    /* SIMULATION DATA PACKETS */
+    .sim-packet {
+      position: absolute; top: 0; left: 0;
+      width: 14px; height: 14px;
+      background: #fff; border-radius: 50%;
+      box-shadow: 0 0 15px 5px rgba(255,85,0,0.8), 0 0 30px rgba(255,255,255,0.5);
+      z-index: 100; pointer-events: none;
+      /* hidden by default, shown by GSAP */
+      opacity: 0;
+    }
+
+    /* SIMULATION PROMPT BUBBLE */
+    .prompt-bubble {
+      position: absolute;
+      bottom: calc(100% + 20px); left: 50%; 
+      transform: translateX(-50%) translateY(10px);
+      width: 320px;
+      background: rgba(20, 20, 20, 0.95);
+      color: #fff;
+      padding: 18px 24px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,85,0,0.4);
+      font-size: 0.95rem; font-weight: 500; line-height: 1.5;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.8), 0 0 30px rgba(255,85,0,0.15);
+      opacity: 0;
+      z-index: 100;
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      text-align: center;
+    }
+    .prompt-bubble::before {
+      content: ''; position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%);
+      border-width: 8px 8px 0; border-style: solid;
+      border-color: rgba(20, 20, 20, 0.95) transparent transparent transparent;
+      z-index: 2;
+    }
+    .prompt-bubble::after {
+      content: ''; position: absolute; bottom: -10px; left: 50%; transform: translateX(-50%);
+      border-width: 10px 10px 0; border-style: solid;
+      border-color: rgba(255,85,0,0.4) transparent transparent transparent;
+      z-index: 1;
+    }
+
+    /* PREMIUM LINEAR-STYLE CARDS */
+    .node {
+      --mouse-x: 50%; --mouse-y: 50%; 
+      position: relative;
+      background: radial-gradient(800px circle at var(--mouse-x) var(--mouse-y), rgba(255,85,0,0.08), transparent 40%), rgba(12, 12, 12, 0.7);
+      backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+      padding: 28px; border-radius: 24px;
+      color: #fff; z-index: 5; text-align: left;
+      border: 1px solid rgba(255,255,255,0.03);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+      /* Nodes are now permanently visible */
+      transition: transform 0.4s;
+    }
+    
+    /* Dynamic Glowing Border tracing the mouse */
+    .node::after {
+      content: ''; position: absolute; inset: -1px; border-radius: 25px;
+      background: radial-gradient(400px circle at var(--mouse-x) var(--mouse-y), rgba(255,85,0,0.8), transparent 40%);
+      z-index: -1;
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor; mask-composite: exclude;
+      padding: 1px; opacity: 0; transition: opacity 0.4s ease;
+    }
+    .node:hover::after { opacity: 1; }
+    .node:hover { box-shadow: 0 30px 60px rgba(0,0,0,0.6), 0 0 60px rgba(255,85,0,0.1); }
+
+    /* ACTIVE SIMULATION GLOW OVERRIDE */
+    .node.sim-active {
+      transform: scale(1.05) !important;
+      border-color: rgba(255,85,0,0.8);
+      box-shadow: 0 0 40px rgba(255,85,0,0.4), 0 0 80px rgba(255,85,0,0.2) !important;
+    }
+    .node.sim-active .n-icon {
+      background: var(--accent); color: #000; box-shadow: 0 0 30px var(--accent);
+    }
+    .node.sim-active::after {
+      background: rgba(255,85,0,1) !important; opacity: 1 !important;
+    }
+
+    .n-header { display: flex; align-items: center; gap: 16px; margin-bottom: 12px; }
+    .n-icon {
+      width: 48px; height: 48px; background: rgba(255,85,0,0.08); border: 1px solid rgba(255,85,0,0.15); border-radius: 14px;
+      display: flex; align-items: center; justify-content: center; font-size: 1.4rem; color: var(--accent);
+      box-shadow: inset 0 0 20px rgba(255,85,0,0.05); transition: all 0.3s;
+    }
+    .n-title { font-family: 'Space Grotesk', sans-serif; font-size: 1.2rem; font-weight: 700; letter-spacing: -0.3px; }
+    .n-desc { font-size: 0.95rem; color: var(--gray); line-height: 1.6; }
+
+    /* Root Nodes */
+    .root-level { display: flex; flex-direction: column; align-items: center; gap: 140px; width: 100%; margin-bottom: 140px; }
+    .root-node {
+      width: 450px; text-align: center; padding: 36px;
+      background: radial-gradient(800px circle at var(--mouse-x) var(--mouse-y), rgba(255,85,0,0.15), transparent 40%), rgba(20, 10, 5, 0.8);
+    }
+    .root-node .n-header { justify-content: center; margin-bottom: 16px; }
+    .root-node .n-icon { background: var(--accent); color: #000; border: none; box-shadow: 0 0 30px rgba(255,85,0,0.6); animation: pulse 3s infinite alternate; }
+    .root-node .n-title { font-size: 1.6rem; color: #fff; }
+
+    @keyframes pulse { 0% { box-shadow: 0 0 20px rgba(255,85,0,0.4); transform: scale(1); } 100% { box-shadow: 0 0 50px rgba(255,85,0,0.8); transform: scale(1.05); } }
+
+    /* Branches Level */
+    .branches-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 80px; width: 100%; max-width: 1400px; }
+    .branch { display: flex; flex-direction: column; align-items: center; gap: 90px; position: relative; }
+    
+    .branch-title {
+      font-family: 'Space Grotesk', sans-serif; font-size: 1.1rem; font-weight: 700; color: #fff;
+      background: rgba(10,10,10,0.8); backdrop-filter: blur(10px);
+      padding: 12px 30px; border: 1px solid rgba(255,255,255,0.1); border-radius: 100px; z-index: 10;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.8); margin-bottom: 30px; letter-spacing: 0.5px; text-transform: uppercase;
+      /* Title permanently visible */
+    }
+    .branch .node { width: 100%; max-width: 360px; }
+
+    /* Responsive */
+    @media (max-width: 1000px) {
+      .branches-grid { grid-template-columns: 1fr; gap: 140px; }
+      .root-node { width: 100%; max-width: 450px; }
+      .prompt-bubble { right: auto; left: 50%; transform: translateX(-50%) translateY(20px); top: 100%; }
+      .prompt-bubble::before { display: none; }
+    }
+
+    /* FOOTER */
+    .footer {
+      border-top: 1px solid var(--surface-border); padding: 40px 48px;
+      display: flex; justify-content: space-between; color: var(--gray); font-size: 0.9rem; position: relative; z-index: 10;
+    }
+    .footer a { color: var(--gray); text-decoration: none; transition: color 0.2s; }
+    .footer a:hover { color: #fff; }
+  </style>
+</head>
+<body>
+  <!-- NEURAL PARTICLE BACKGROUND -->
+  <canvas id="bg-particles" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -2; opacity: 0.6; pointer-events: none;"></canvas>
+  <div class="mesh-bg">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+  </div>
+  <div class="grid-bg"></div>
+  <div class="noise"></div>
+  <div class="custom-cursor" id="cursor"></div>
+
+  <nav class="nav">
+    <a href="index.html" class="nav-logo hover-target"><img src="assets/logo.png" alt="WinVoice Logo">WinVoice</a>
+    <div class="nav-links">
+      <a href="index.html#features" class="hover-target">Features</a>
+      <a href="architecture.html" class="hover-target" style="color: #fff;">Architecture</a>
+      <a href="privacy-policy.html" class="hover-target">Privacy</a>
+      <a href="terms.html" class="hover-target">Terms</a>
+      <a href="https://github.com" target="_blank" class="nav-cta hover-target">Get Early Access</a>
+    </div>
+  </nav>
+
+  <header class="header">
+    <h1 class="parallax-title">The WinVoice Engine</h1>
+    <p class="parallax-title">Explore the autonomous neural routing architecture. A single local model dynamically parses complex voice commands and orchestrates up to 15 specialized agents.</p>
+  </header>
+
+  <div id="tree-container">
+    
+    <svg id="connections"></svg>
+
+    <!-- LEVEL 1: INPUT -->
+    <div class="root-level">
+      <div class="node hover-target parallax-node" id="node-frontend" data-layer="1">
+        
+        <!-- SIMULATION PROMPT BUBBLE -->
+        <div class="prompt-bubble" id="sim-prompt-bubble">
+          <div id="sim-prompt-text"></div>
+        </div>
+
+        <div class="n-header"><div class="n-icon">🎙️</div><div class="n-title">Electron Frontend</div></div>
+        <div class="n-desc">Captures global hotkeys and voice streams. Real-time VAD detects when you speak, securely piping audio via IPC.</div>
+      </div>
+      
+      <!-- LEVEL 2: ROUTER & MEMORY -->
+      <div class="node root-node hover-target parallax-node" id="node-router" data-layer="2">
+        <div class="n-header"><div class="n-icon">⚡</div><div class="n-title">Local AI Router & Memory</div></div>
+        <div class="n-desc">FastAPI intercepts the transcript. A pre-warmed Ollama model strictly parses your intent, cross-referencing your Vector Database to perfectly route your task.</div>
+      </div>
+    </div>
+
+    <!-- LEVEL 3 & 4: THE BRANCHES -->
+    <div class="branches-grid">
+      
+      <!-- BRANCH 1: Workspace & Productivity -->
+      <div class="branch">
+        <div class="branch-title parallax-node" id="title-workspace" data-layer="3">Workspace & Productivity</div>
+        
+        <div class="node agent-node hover-target parallax-node" data-parent="title-workspace" id="agent-docs" data-layer="4">
+          <div class="n-header"><div class="n-icon">📝</div><div class="n-title">Docs Agent</div></div>
+          <div class="n-desc">Creates, reads, and dynamically types into Google Docs based on your instructions.</div>
+        </div>
+        <div class="node agent-node hover-target parallax-node" data-parent="agent-docs" id="agent-sheets" data-layer="5">
+          <div class="n-header"><div class="n-icon">📊</div><div class="n-title">Sheets Agent</div></div>
+          <div class="n-desc">Updates rows, queries columns, and generates spreadsheets natively.</div>
+        </div>
+        <div class="node agent-node hover-target parallax-node" data-parent="agent-sheets" id="agent-gmail" data-layer="6">
+          <div class="n-header"><div class="n-icon">📧</div><div class="n-title">Gmail Agent</div></div>
+          <div class="n-desc">Drafts emails, summarizes unread threads, and manages your inbox contextually.</div>
+        </div>
+        <div class="node agent-node hover-target parallax-node" data-parent="agent-gmail" id="agent-calendar" data-layer="7">
+          <div class="n-header"><div class="n-icon">📅</div><div class="n-title">Calendar Agent</div></div>
+          <div class="n-desc">Schedules meetings, checks availability, and resolves calendar conflicts.</div>
+        </div>
+        <div class="node agent-node hover-target parallax-node" data-parent="agent-calendar" id="agent-tasks" data-layer="8">
+          <div class="n-header"><div class="n-icon">✅</div><div class="n-title">Tasks Agent</div></div>
+          <div class="n-desc">Manages Google Tasks, organizes sub-tasks, and tracks your daily goals.</div>
+        </div>
+      </div>
+
+      <!-- BRANCH 2: System & Local Control -->
+      <div class="branch">
+        <div class="branch-title parallax-node" id="title-system" data-layer="3">System & Local Control</div>
+        
+        <div class="node agent-node hover-target parallax-node" data-parent="title-system" id="agent-os" data-layer="4">
+          <div class="n-header"><div class="n-icon">💻</div><div class="n-title">OS Agent</div></div>
+          <div class="n-desc">Executes raw system commands, manages window states, and adjusts system hardware natively.</div>
+        </div>
+        <div class="node agent-node hover-target parallax-node" data-parent="agent-os" id="agent-sys" data-layer="5">
+          <div class="n-header"><div class="n-icon">⚙️</div><div class="n-title">System Agent</div></div>
+          <div class="n-desc">Handles core application configurations, user state, and fallback queries.</div>
+        </div>
+        <div class="node agent-node hover-target parallax-node" data-parent="agent-sys" id="agent-mem" data-layer="6">
+          <div class="n-header"><div class="n-icon">🧠</div><div class="n-title">Memory Agent</div></div>
+          <div class="n-desc">Specialized in explicitly memorizing, retrieving, and updating user preferences into pgvector.</div>
+        </div>
+        <div class="node agent-node hover-target parallax-node" data-parent="agent-mem" id="agent-timer" data-layer="7">
+          <div class="n-header"><div class="n-icon">⏱️</div><div class="n-title">Timer Agent</div></div>
+          <div class="n-desc">Sets system alarms, manages deep-work timers, and handles time-based macros.</div>
+        </div>
+      </div>
+
+      <!-- BRANCH 3: Web & Communication -->
+      <div class="branch">
+        <div class="branch-title parallax-node" id="title-web" data-layer="3">Web & Communication</div>
+        
+        <div class="node agent-node hover-target parallax-node" data-parent="title-web" id="agent-wa" data-layer="4">
+          <div class="n-header"><div class="n-icon">💬</div><div class="n-title">WhatsApp Agent</div></div>
+          <div class="n-desc">Spawns a headless browser to silently send and read WhatsApp messages.</div>
+        </div>
+        <div class="node agent-node hover-target parallax-node" data-parent="agent-wa" id="agent-spotify" data-layer="5">
+          <div class="n-header"><div class="n-icon">🎵</div><div class="n-title">Spotify Agent</div></div>
+          <div class="n-desc">Controls playback, queues songs, and analyzes your musical preferences.</div>
+        </div>
+        <div class="node agent-node hover-target parallax-node" data-parent="agent-spotify" id="agent-weather" data-layer="6">
+          <div class="n-header"><div class="n-icon">🌤️</div><div class="n-title">Weather Agent</div></div>
+          <div class="n-desc">Fetches real-time hyper-local weather conditions and multi-day forecasts.</div>
+        </div>
+        <div class="node agent-node hover-target parallax-node" data-parent="agent-weather" id="agent-contacts" data-layer="7">
+          <div class="n-header"><div class="n-icon">👥</div><div class="n-title">Contacts Agent</div></div>
+          <div class="n-desc">Resolves names to phone numbers or emails across all your interconnected apps.</div>
+        </div>
+        <div class="node agent-node hover-target parallax-node" data-parent="agent-contacts" id="agent-gen" data-layer="8">
+          <div class="n-header"><div class="n-icon">🌐</div><div class="n-title">General Agent</div></div>
+          <div class="n-desc">Your ultimate fallback. Performs real-time web searches to answer abstract or complex queries.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div>&copy; 2026 WinVoice AI. All rights reserved.</div>
+    <div style="display:flex;gap:20px;">
+      <a href="privacy-policy.html" class="hover-target">Privacy Policy</a>
+      <a href="terms.html" class="hover-target">Terms of Service</a>
+    </div>
+  </footer>
+
+  <script>
+    gsap.registerPlugin(ScrollTrigger, MotionPathPlugin);
+
+    // Custom Cursor
+    const cursor = document.getElementById('cursor');
+    document.addEventListener('mousemove', (e) => {
+      gsap.to(cursor, { x: e.clientX, y: e.clientY, duration: 0.1, ease: "power2.out" });
+      document.querySelectorAll('.node').forEach(node => {
+        const rect = node.getBoundingClientRect();
+        node.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`);
+        node.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`);
+      });
+    });
+
+    document.querySelectorAll('.hover-target').forEach(el => {
+      el.addEventListener('mouseenter', () => cursor.classList.add('hover'));
+      el.addEventListener('mouseleave', () => cursor.classList.remove('hover'));
+    });
+
+    // 3D Tilt Effect
+    document.querySelectorAll('.node').forEach(node => {
+      node.addEventListener('mousemove', (e) => {
+        if(node.classList.contains('sim-active')) return; // disable hover tilt during sim glow
+        const rect = node.getBoundingClientRect();
+        const xPct = ((e.clientX - rect.left) / rect.width - 0.5) * 2;
+        const yPct = ((e.clientY - rect.top) / rect.height - 0.5) * 2;
+        gsap.to(node, { rotationY: xPct * 8, rotationX: -yPct * 8, duration: 0.4, ease: "power2.out", transformPerspective: 1000 });
+      });
+      node.addEventListener('mouseleave', () => {
+        gsap.to(node, { rotationY: 0, rotationX: 0, duration: 0.6, ease: "power2.out" });
+      });
+    });
+
+    // --- DYNAMIC SVG DRAWING ---
+    const svg = document.getElementById('connections');
+    const container = document.getElementById('tree-container');
+    let glowPaths = []; 
+
+    function drawLines() {
+      // Don't clear during resize if simulation is running, just rely on original draw
+      if(svg.innerHTML !== '') return; 
+      
+      const containerRect = container.getBoundingClientRect();
+
+      function drawCurve(el1Id, el2Id, layerGroup) {
+        const el1 = document.getElementById(el1Id);
+        const el2 = document.getElementById(el2Id);
+        if(!el1 || !el2) return;
+
+        const r1 = el1.getBoundingClientRect();
+        const r2 = el2.getBoundingClientRect();
+
+        const startX = (r1.left + r1.width / 2) - containerRect.left;
+        const startY = r1.bottom - containerRect.top;
+        const endX = (r2.left + r2.width / 2) - containerRect.left;
+        const endY = r2.top - containerRect.top;
+
+        const pathId = `path-${Math.random().toString(36).substr(2, 9)}`;
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        path.setAttribute("id", pathId);
+        
+        if (Math.abs(startX - endX) < 10) {
+          path.setAttribute("d", `M ${startX} ${startY} L ${endX} ${endY}`);
+        } else {
+          const midY = startY + (endY - startY) / 2;
+          path.setAttribute("d", `M ${startX} ${startY} C ${startX} ${midY}, ${endX} ${midY}, ${endX} ${endY}`);
+        }
+        
+        path.setAttribute("class", "tree-path");
+        svg.appendChild(path);
+
+        // Remove dasharray settings since lines are permanently visible
+        const glow = path.cloneNode();
+        glow.setAttribute("class", "tree-glow");
+        glow.setAttribute("id", pathId + "-glow");
+        const length = 1500; 
+        svg.appendChild(glow);
+        
+        glowPaths.push({ el: glow, length: length, layer: layerGroup, pathId: pathId });
+      }
+
+      drawCurve('node-frontend', 'node-router', 2);
+      drawCurve('node-router', 'title-workspace', 3);
+      drawCurve('node-router', 'title-system', 3);
+      drawCurve('node-router', 'title-web', 3);
+
+      const agents = document.querySelectorAll('.agent-node');
+      agents.forEach(agent => {
+        const parentId = agent.getAttribute('data-parent');
+        const layer = parseInt(agent.getAttribute('data-layer'));
+        if (parentId) drawCurve(parentId, agent.id, layer);
+      });
+    }
+
+    drawLines();
+    
+    // --- START SIMULATION AUTOMATICALLY ---
+    gsap.delayedCall(1.5, startSimulation);
+
+    // --- BACKGROUND NEURAL PARTICLES ---
+    const canvas = document.getElementById('bg-particles');
+    const ctx = canvas.getContext('2d');
+    let width, height;
+    let particles = [];
+    
+    function resizeCanvas() {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    class Particle {
+      constructor() {
+        this.x = Math.random() * width;
+        this.y = Math.random() * height;
+        this.vx = (Math.random() - 0.5) * 0.5;
+        this.vy = (Math.random() - 0.5) * 0.5;
+        this.radius = Math.random() * 2 + 0.5;
+      }
+      update() {
+        this.x += this.vx; this.y += this.vy;
+        if (this.x < 0 || this.x > width) this.vx = -this.vx;
+        if (this.y < 0 || this.y > height) this.vy = -this.vy;
+      }
+      draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255, 85, 0, 0.4)';
+        ctx.fill();
+      }
+    }
+
+    for (let i = 0; i < 70; i++) particles.push(new Particle());
+
+    function animateParticles() {
+      ctx.clearRect(0, 0, width, height);
+      for (let i = 0; i < particles.length; i++) {
+        particles[i].update();
+        particles[i].draw();
+        for (let j = i + 1; j < particles.length; j++) {
+          const dx = particles[i].x - particles[j].x;
+          const dy = particles[i].y - particles[j].y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 180) {
+            ctx.beginPath();
+            ctx.moveTo(particles[i].x, particles[i].y);
+            ctx.lineTo(particles[j].x, particles[j].y);
+            ctx.strokeStyle = `rgba(255, 85, 0, ${0.15 * (1 - dist / 180)})`;
+            ctx.lineWidth = 1;
+            ctx.stroke();
+          }
+        }
+      }
+      requestAnimationFrame(animateParticles);
+    }
+    animateParticles();
+
+    // --- PARALLAX SCROLLING ---
+    gsap.utils.toArray('.parallax-node').forEach(node => {
+      gsap.to(node, {
+        yPercent: -15, ease: "none",
+        scrollTrigger: { trigger: node, start: "top bottom", end: "bottom top", scrub: true }
+      });
+    });
+
+
+    // ==========================================
+    // THE INTENT ROUTING SIMULATION LOOP
+    // ==========================================
+
+    const SIM_PROMPTS = [
+      {
+        text: "Schedule a meeting with Sarah for 3 PM tomorrow, draft an email to the team, and set a 30-minute focus timer.",
+        targets: ["agent-calendar", "agent-gmail", "agent-timer"]
+      },
+      {
+        text: "Search the web for the latest AI news, summarize it in a new Google Doc, and message the link to David on WhatsApp.",
+        targets: ["agent-gen", "agent-docs", "agent-wa"]
+      },
+      {
+        text: "Turn on dark mode, mute the system volume, and play my Lo-Fi playlist.",
+        targets: ["agent-sys", "agent-os", "agent-spotify"]
+      },
+      {
+        text: "Pull up last month's sales data in Sheets, create a new task to review it, and save these steps to my macros.",
+        targets: ["agent-sheets", "agent-tasks", "agent-mem"]
+      }
+    ];
+
+    let simIndex = 0;
+
+    function startSimulation() {
+      runNextPrompt();
+    }
+
+    function runNextPrompt() {
+      const prompt = SIM_PROMPTS[simIndex];
+      simIndex = (simIndex + 1) % SIM_PROMPTS.length;
+
+      const bubble = document.getElementById("sim-prompt-bubble");
+      const textEl = document.getElementById("sim-prompt-text");
+      
+      textEl.textContent = "";
+      gsap.to(bubble, { opacity: 1, y: 0, duration: 0.3 });
+
+      // Typewriter
+      let i = 0;
+      const typeInterval = setInterval(() => {
+        textEl.textContent = prompt.text.substring(0, i + 1);
+        i++;
+        if (i >= prompt.text.length) {
+          clearInterval(typeInterval);
+          gsap.delayedCall(0.5, () => executeRouting(prompt.targets, bubble));
+        }
+      }, 30);
+    }
+
+    function drawTracedPath(targetId) {
+      const containerRect = container.getBoundingClientRect();
+      const router = document.getElementById('node-router');
+      const target = document.getElementById(targetId);
+      
+      // We want to curve from Router to Branch Title, then straight down to the Agent
+      const branchTitleId = target.closest('.branch').querySelector('.branch-title').id;
+      const branchTitle = document.getElementById(branchTitleId);
+
+      const startX = (router.getBoundingClientRect().left + router.getBoundingClientRect().width / 2) - containerRect.left;
+      const startY = router.getBoundingClientRect().bottom - containerRect.top;
+      
+      const midX = (branchTitle.getBoundingClientRect().left + branchTitle.getBoundingClientRect().width / 2) - containerRect.left;
+      const midY = branchTitle.getBoundingClientRect().top - containerRect.top;
+
+      const endX = (target.getBoundingClientRect().left + target.getBoundingClientRect().width / 2) - containerRect.left;
+      const endY = target.getBoundingClientRect().top - containerRect.top;
+
+      const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      
+      // Bezier curve to branch title, then straight line to target
+      const curveMidY = startY + (midY - startY) / 2;
+      const d = `M ${startX} ${startY} C ${startX} ${curveMidY}, ${midX} ${curveMidY}, ${midX} ${midY} L ${endX} ${endY}`;
+      
+      path.setAttribute("d", d);
+      path.style.stroke = 'none';
+      path.style.fill = 'none';
+      svg.appendChild(path);
+      return path;
+    }
+
+    function firePacket(sourceId, targetId, delay = 0, duration = 3) {
+      return new Promise(resolve => {
+        // If firing from frontend to router, just use a simple curve, otherwise trace the tree
+        const path = (sourceId === 'node-frontend') ? drawDirectPath(sourceId, targetId) : drawTracedPath(targetId);
+        
+        const packet = document.createElement('div');
+        packet.className = 'sim-packet';
+        container.appendChild(packet);
+
+        gsap.to(packet, {
+          opacity: 1, duration: 0.2, delay: delay
+        });
+
+        gsap.to(packet, {
+          duration: duration,
+          delay: delay,
+          ease: "power2.inOut",
+          motionPath: {
+            path: path,
+            align: path,
+            alignOrigin: [0.5, 0.5]
+          },
+          onComplete: () => {
+            packet.remove();
+            path.remove();
+            resolve();
+          }
+        });
+      });
+    }
+
+    function drawDirectPath(el1Id, el2Id) {
+      const el1 = document.getElementById(el1Id);
+      const el2 = document.getElementById(el2Id);
+      const containerRect = container.getBoundingClientRect();
+      const startX = (el1.getBoundingClientRect().left + el1.getBoundingClientRect().width / 2) - containerRect.left;
+      const startY = el1.getBoundingClientRect().bottom - containerRect.top;
+      const endX = (el2.getBoundingClientRect().left + el2.getBoundingClientRect().width / 2) - containerRect.left;
+      const endY = el2.getBoundingClientRect().top - containerRect.top;
+
+      const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      const midY = startY + (endY - startY) / 2;
+      path.setAttribute("d", `M ${startX} ${startY} C ${startX} ${midY}, ${endX} ${midY}, ${endX} ${endY}`);
+      path.style.stroke = 'none'; path.style.fill = 'none';
+      svg.appendChild(path); return path;
+    }
+
+    async function executeRouting(targets, bubble) {
+      // 1. Send packet from Frontend to Router (even slower)
+      await firePacket('node-frontend', 'node-router', 0, 2.5);
+      
+      // 2. Router Pulses
+      const router = document.getElementById('node-router');
+      router.classList.add('sim-active');
+      
+      // Small parsing delay
+      await new Promise(r => setTimeout(r, 1000));
+      
+      // 3. Fire all packets from Router down the traced branches (very slow)
+      const firePromises = targets.map(targetId => firePacket('node-router', targetId, 0, 5.0));
+      await Promise.all(firePromises);
+
+      
+      // 4. Hit! Light up target agents
+      targets.forEach(t => document.getElementById(t).classList.add('sim-active'));
+      
+      // 5. Hold state for 5 seconds to let them glow longer
+      await new Promise(r => setTimeout(r, 5000));
+      
+      // 6. Reset everything
+      router.classList.remove('sim-active');
+      targets.forEach(t => document.getElementById(t).classList.remove('sim-active'));
+      gsap.to(bubble, { opacity: 0, y: 10, duration: 0.3 });
+      
+      // 7. Wait 3 seconds before next prompt (more gap)
+      await new Promise(r => setTimeout(r, 3000));
+      runNextPrompt();
+    }
+
+  </script>
+</body>
+</html>
