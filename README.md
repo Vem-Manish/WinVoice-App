@@ -28,13 +28,16 @@
 
 ## 🎥 Demo Video
 
-<!-- Demo video embed / preview -->
 <div align="center">
-  <a href="https://github.com/Vem-Manish/WinVoice-App">
-    <img src="https://img.shields.io/badge/▶_Watch_Demo_Video-Click_Here-FF6B00?style=for-the-badge&logo=youtube&logoColor=white" alt="Watch Demo" height="40">
+  <a href="https://www.youtube.com/watch?v=52CcFGZBPO4" target="_blank">
+    <img src="https://img.youtube.com/vi/52CcFGZBPO4/maxresdefault.jpg" alt="Control Your PC With Your Voice | WinVoice AI Demo" width="85%" style="border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.6);" />
   </a>
   <br/><br/>
-  <p><i>Click above or drop your recorded demo video (<code>demo.mp4</code> or GIF) into <code>assets/</code> to display live playback here.</i></p>
+  <p align="center">
+    <a href="https://www.youtube.com/watch?v=52CcFGZBPO4" target="_blank">
+      <img src="https://img.shields.io/badge/▶_Watch_on_YouTube-Control_Your_PC_With_Your_Voice-FF0000?style=for-the-badge&logo=youtube&logoColor=white" alt="Watch on YouTube" />
+    </a>
+  </p>
 </div>
 
 ---
